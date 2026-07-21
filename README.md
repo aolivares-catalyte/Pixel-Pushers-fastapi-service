@@ -58,4 +58,4 @@ uvicorn main:app --reload
 - [x] Endpoint With a Path Parameter
 - [x] Verification via Postman
 - [x] requirements.txt Created
-- [ ] Comprehension Checkpoint
+- [x] Comprehension Checkpoint
