@@ -31,6 +31,13 @@ A CLI based FastAPI app running locally that helps establish habits for using Cu
     .\.venv\Scripts\activate
     ```
 
+3. Install required packages:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+
 # Tasks Completed
 
 - [x] GitHub Repository Created and Shared
@@ -42,5 +49,5 @@ A CLI based FastAPI app running locally that helps establish habits for using Cu
 - [ ] Basic "Hello World" Endpoint
 - [ ] Endpoint With a Path Parameter
 - [ ] Verification via Postman
-- [ ] Requirements.txt Created
+- [ ] requirements.txt Created
 - [ ] Comprehension Checkpoint
