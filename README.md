@@ -42,9 +42,9 @@ A CLI based FastAPI app running locally that helps establish habits for using Cu
 
 From the project root, run:
 
-    ```bash
-    uvicorn main:app --reload
-    ```
+```bash
+uvicorn main:app --reload
+```
 
 # Tasks Completed
 
