@@ -33,14 +33,14 @@ A CLI based FastAPI app running locally that helps establish habits for using Cu
 
 # Tasks Completed
 
--[x] GitHub Repository Created and Shared
--[x] All Team Members Added as Collaborators
--[x] .gitignore File Added
--[x] README created
--[x] Virtual Environment Created and Used
--[] FastAPI and Uvicorn Installed
--[] Basic "Hello World" Endpoint
--[] Endpoint With a Path Parameter
--[] Verification via Postman
--[] Requirements.txt Created
--[] Comprehension Checkpoint
+- [x] GitHub Repository Created and Shared
+- [x] All Team Members Added as Collaborators
+- [x] .gitignore File Added
+- [x] README created
+- [x] Virtual Environment Created and Used
+- [ ] FastAPI and Uvicorn Installed
+- [ ] Basic "Hello World" Endpoint
+- [ ] Endpoint With a Path Parameter
+- [ ] Verification via Postman
+- [ ] Requirements.txt Created
+- [ ] Comprehension Checkpoint
