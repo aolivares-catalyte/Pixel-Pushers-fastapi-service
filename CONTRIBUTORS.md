@@ -2,4 +2,4 @@
 
 | Member | Github |
 | --- | --- | 
-| William Shepelak |  [GitHub](https://github.com/wshepelak-catalyte) |
+| William Shepelak |  [wshepelak-catalyte](https://github.com/wshepelak-catalyte) |
