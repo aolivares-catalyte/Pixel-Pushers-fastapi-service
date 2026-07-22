@@ -14,13 +14,13 @@ def create_product(product: ProductSchema):
     return {"data": product.model_dump()}
 
 
-@router.get("/products", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK)
 def get_products():
     """Get all products."""
     return {"data": products_list}
 
 
-@router.get("/products/search", status_code=status.HTTP_200_OK)
+@router.get("/search", status_code=status.HTTP_200_OK)
 def search_product(name: str, unit: str = "each"):
     """Search for a product by name and unit."""
     return {
