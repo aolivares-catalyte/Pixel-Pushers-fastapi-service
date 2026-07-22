@@ -4,13 +4,6 @@
 
 A CLI based FastAPI app running locally that helps establish habits for using Cursor responsibly.
 
-## Features
-
-- A basic "Hello World" endpoint
-- An /hello/\<name\> endpoint with a name parameter
-- A comprehensive README.md
-- A complete requirements.txt
-
 ## Prerequisites
 
 - Python 3.10 or newer
@@ -46,7 +39,27 @@ From the project root, run:
 uvicorn main:app --reload
 ```
 
-# Tasks Completed
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | / | Get a hello world message |
+| GET | /hello/{name} | get hello {name} message |
+| POST | /products | Add a product into our in memory database |
+
+## Tasks Completed Day 2
+
+- [x] Ingredient Pydantic Model Created
+- [x] POST Endpoint Accepting the Product Model
+- [x] In-Memory Storage of Products
+- [ ] GET /products Endpoint Returns All Products
+- [ ] Query Parameters Added for Searching
+- [ ] Validation Rules Reflecting Real Business Constraints
+- [ ] Postman Collection Updated
+- [ ] README Updated
+- [ ] Comprehension Checkpoint (Individual, No AI Assistance)
+
+## Tasks Completed Day 1
 
 - [x] GitHub Repository Created and Shared
 - [x] All Team Members Added as Collaborators
