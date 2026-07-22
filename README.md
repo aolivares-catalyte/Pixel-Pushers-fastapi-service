@@ -45,7 +45,7 @@ To view API endpoint information visit the /docs/ endpoint.
 
 ## Tasks Completed Day 2
 
-- [x] Ingredient Pydantic Model Created
+- [x] Product Pydantic Model Created
 - [x] POST Endpoint Accepting the Product Model
 - [x] In-Memory Storage of Products
 - [x] GET /products Endpoint Returns All Products

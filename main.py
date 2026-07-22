@@ -8,9 +8,7 @@ This module defines the application instance and two routes:
 It also mounts the product router under the /products prefix.
 """
 
-from fastapi import FastAPI, status
-from fastapi.requests import Request
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from Product.product_router import router as product_router
 
 # Create the main FastAPI application instance
