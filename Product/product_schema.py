@@ -22,6 +22,7 @@ class ProductSchema(BaseModel):
     @field_validator("price_per_unit")
     def validate_price_per_unit(cls, value, info):
         """Validate that the product is not being sold at a loss."""
-        if info.data["cost_per_unit"] > value:
+        cost_per_unit = info.data.get("cost_per_unit")
+        if cost_per_unit is not None and cost_per_unit > value:
             raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
         return value
