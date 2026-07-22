@@ -53,7 +53,7 @@ To view API endpoint information visit the /docs/ endpoint.
 - [x] Validation Rules Reflecting Real Business Constraints
 - [x] Postman Collection Updated
 - [x] README Updated
-- [ ] Comprehension Checkpoint (Individual, No AI Assistance)
+- [x] Comprehension Checkpoint (Individual, No AI Assistance)
 
 ## Tasks Completed Day 1
 
