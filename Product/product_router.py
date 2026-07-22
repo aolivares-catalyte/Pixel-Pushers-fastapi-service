@@ -24,15 +24,15 @@ async def create_product(product: ProductSchema):
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-def get_products():
+async def get_products():
     """
     Retrieve all products currently stored in memory.
     """
-    return {"data": products_list}
+    return {"data": [product.model_dump() for product in products_list]}
 
 
 @router.get("/search", status_code=status.HTTP_200_OK)
-def search_product(name: str, unit: str = "each"):
+async def search_product(name: str, unit: str = "each"):
     """
     Search for a product by name and unit.
 
@@ -42,7 +42,7 @@ def search_product(name: str, unit: str = "each"):
     """
     return {
         "data": [
-            product
+            product.model_dump()
             for product in products_list
             if product.name == name and product.unit == unit
         ]

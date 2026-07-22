@@ -51,8 +51,8 @@ To view API endpoint information visit the /docs/ endpoint.
 - [x] GET /products Endpoint Returns All Products
 - [x] Query Parameters Added for Searching
 - [x] Validation Rules Reflecting Real Business Constraints
-- [ ] Postman Collection Updated
-- [ ] README Updated
+- [x] Postman Collection Updated
+- [x] README Updated
 - [ ] Comprehension Checkpoint (Individual, No AI Assistance)
 
 ## Tasks Completed Day 1
