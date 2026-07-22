@@ -43,17 +43,19 @@ uvicorn main:app --reload
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | / | Get a hello world message |
-| GET | /hello/{name} | Get hello {name} message |
-| POST | /products | Add a product into our in memory database |
+| GET | / | Return a default greeting message. |
+| GET | /hello/{name} | Return a greeting message addressed to the provided name. |
+| POST | /products | Create a new product with the provided details. |
+| GET | /products | Retrieve all products currently stored in memory. |
+| GET | /products/search | Search for a product by name and unit. |
 
 ## Tasks Completed Day 2
 
 - [x] Ingredient Pydantic Model Created
 - [x] POST Endpoint Accepting the Product Model
 - [x] In-Memory Storage of Products
-- [ ] GET /products Endpoint Returns All Products
-- [ ] Query Parameters Added for Searching
+- [x] GET /products Endpoint Returns All Products
+- [x] Query Parameters Added for Searching
 - [ ] Validation Rules Reflecting Real Business Constraints
 - [ ] Postman Collection Updated
 - [ ] README Updated
