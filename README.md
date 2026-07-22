@@ -44,7 +44,7 @@ uvicorn main:app --reload
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | / | Get a hello world message |
-| GET | /hello/{name} | get hello {name} message |
+| GET | /hello/{name} | Get hello {name} message |
 | POST | /products | Add a product into our in memory database |
 
 ## Tasks Completed Day 2
