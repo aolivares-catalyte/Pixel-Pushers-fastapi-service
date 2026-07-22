@@ -6,9 +6,11 @@ This module defines the application instance and two routes:
 """
 
 from fastapi import FastAPI
+from Product.product_router import router as product_router
 
 app = FastAPI()
 
+app.include_router(product_router, prefix="/products", tags=["products"])
 
 @app.get("/")
 def read_root():
@@ -20,3 +22,4 @@ def read_root():
 def say_hello(name: str):
     """Return a greeting message addressed to the provided name."""
     return {"message": f"Hello, {name}!"}
+
