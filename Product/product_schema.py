@@ -9,6 +9,7 @@ class ProductSchema(BaseModel):
         unit (str): Unit of measurement for the product (e.g., "each", "lb").
         cost_per_unit (float): Cost of the product per unit. Must be greater than 0.
         price_per_unit (float): Selling price of the product per unit.
+                                Must be greater than or equal to cost_per_unit.
         quantity_in_stock (float): Quantity of the product currently in stock.
                                    Must be greater than or equal to 0.
     """
