@@ -41,13 +41,7 @@ uvicorn main:app --reload
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | / | Return a default greeting message. |
-| GET | /hello/{name} | Return a greeting message addressed to the provided name. |
-| POST | /products | Create a new product with the provided details. |
-| GET | /products | Retrieve all products currently stored in memory. |
-| GET | /products/search | Search for a product by name and unit. |
+To view API endpoint information visit the /docs/ endpoint.
 
 ## Tasks Completed Day 2
 
@@ -56,7 +50,7 @@ uvicorn main:app --reload
 - [x] In-Memory Storage of Products
 - [x] GET /products Endpoint Returns All Products
 - [x] Query Parameters Added for Searching
-- [ ] Validation Rules Reflecting Real Business Constraints
+- [x] Validation Rules Reflecting Real Business Constraints
 - [ ] Postman Collection Updated
 - [ ] README Updated
 - [ ] Comprehension Checkpoint (Individual, No AI Assistance)
