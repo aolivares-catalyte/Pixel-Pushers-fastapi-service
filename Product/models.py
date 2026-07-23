@@ -18,4 +18,4 @@ class Product(Base):
     unit: Mapped[str] = mapped_column(String, nullable=False, index=True)
     cost_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
-    quantity_in_stock: Mapped[int] = mapped_column(Integer, nullable=False, index=False)
+    quantity_in_stock: Mapped[float] = mapped_column(Float, nullable=False, index=False)
