@@ -1,0 +1,14 @@
+$kind: http-request
+name: Products Post Basil Plant
+method: POST
+url: 'http://127.0.0.1:8000/products/'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Basil Plant - 4in Pot",
+      "unit": "each",
+      "cost_per_unit": 1.75,
+      "price_per_unit": 4.99,
+      "quantity_in_stock": 40
+    }

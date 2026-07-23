@@ -1,0 +1,14 @@
+$kind: http-request
+name: Products Post Marigold Flowers
+method: POST
+url: 'http://127.0.0.1:8000/products/'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Marigold Flowers - 6in Pot",
+      "unit": "each",
+      "cost_per_unit": 1.50,
+      "price_per_unit": 4.50,
+      "quantity_in_stock": 18
+    }

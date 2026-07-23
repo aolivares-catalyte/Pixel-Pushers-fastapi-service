@@ -1,0 +1,14 @@
+$kind: http-request
+name: Products Post Rosemary Plant
+method: POST
+url: 'http://127.0.0.1:8000/products/'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Rosemary Plant - 4in Pot",
+      "unit": "each",
+      "cost_per_unit": 2.25,
+      "price_per_unit": 5.99,
+      "quantity_in_stock": 24
+    }
