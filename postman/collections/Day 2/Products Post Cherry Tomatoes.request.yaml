@@ -1,0 +1,14 @@
+$kind: http-request
+name: Products Post Cherry Tomatoes
+method: POST
+url: 'http://127.0.0.1:8000/products/'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Cherry Tomatoes - 1lb Clamshell",
+      "unit": "lb",
+      "cost_per_unit": 1.10,
+      "price_per_unit": 3.49,
+      "quantity_in_stock": 52
+    }
