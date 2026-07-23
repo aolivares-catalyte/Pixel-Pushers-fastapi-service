@@ -1,14 +1,14 @@
 $kind: http-request
-name: '(BAD) Products Post [price_per_unit fail]'
+name: (BAD) Products Post [price_per_unit fail]
 method: POST
-url: 'http://127.0.0.1:8000/products/'
+url: http://127.0.0.1:8000/products/
 body:
   type: json
   content: |-
     {
       "name": "Basil Plant - 4in Pot",
       "unit": "each",
-      "cost_per_unit": -1.75,
+      "cost_per_unit": 1.75,
       "price_per_unit": 1.00,
       "quantity_in_stock": 38
     }

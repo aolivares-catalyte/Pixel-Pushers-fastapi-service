@@ -19,7 +19,7 @@ class ProductSchema(BaseModel):
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
 
-    @field_validator("price_per_unit")
+    @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
