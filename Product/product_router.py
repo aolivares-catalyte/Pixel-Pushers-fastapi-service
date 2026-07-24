@@ -20,7 +20,7 @@ async def create_product(product: ProductSchema):
     response before this function is executed.
     """
     products_list.append(product)
-    return {"data": product.model_dump()}
+    return product.model_dump()
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
@@ -28,7 +28,7 @@ async def get_products():
     """
     Retrieve all products currently stored in memory.
     """
-    return {"data": [product.model_dump() for product in products_list]}
+    return [product.model_dump() for product in products_list]
 
 
 @router.get("/search", status_code=status.HTTP_200_OK)
@@ -40,10 +40,8 @@ async def search_product(name: str, unit: str = "each"):
         name: The product name to search for.
         unit: Optional unit filter (defaults to "each").
     """
-    return {
-        "data": [
-            product.model_dump()
-            for product in products_list
-            if product.name == name and product.unit == unit
-        ]
-    }
+    return [
+        product.model_dump()
+        for product in products_list
+        if product.name == name and product.unit == unit
+    ]

@@ -1,7 +1,6 @@
 $kind: http-request
 name: Products Search Get
 method: GET
-url: 'http://127.0.0.1:8000/products/search?name=Rosemary Plant - 4in Pot'
+url: "http://127.0.0.1:8000/products/search?name= "
 queryParams:
-  - key: name
-    value: 'Rosemary Plant - 4in Pot'
+  name: " "
