@@ -17,7 +17,7 @@ endpoints.
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from Product.models import Product
+from Product.product_model import Product
 from Product.product_router import router as product_router
 
 # Create the main FastAPI application instance

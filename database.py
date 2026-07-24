@@ -28,7 +28,7 @@ class Base(DeclarativeBase):
     pass
 
 # Import models after Base is defined to avoid circular imports
-from Product.models import Product
+from Product.product_model import Product
 
 # Drop and recreate all tables to sync schema with ORM models
 Base.metadata.drop_all(bind=engine)
