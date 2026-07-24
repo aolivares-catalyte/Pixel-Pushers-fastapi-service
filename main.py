@@ -16,7 +16,7 @@ endpoints.
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import Base, SessionLocal, engine
 from utils import get_db
 from Product.product_model import Product
 from Product.product_router import router as product_router
@@ -26,6 +26,9 @@ app = FastAPI()
 
 # Mount product related routes under /products
 app.include_router(product_router, prefix="/products", tags=["products"])
+
+Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():

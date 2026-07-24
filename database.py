@@ -26,11 +26,3 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
     pass
-
-# Import models after Base is defined to avoid circular imports
-from Product.product_model import Product
-
-# Drop and recreate all tables to sync schema with ORM models
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-
