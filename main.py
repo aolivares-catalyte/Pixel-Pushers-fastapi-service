@@ -16,9 +16,11 @@ endpoints.
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from database import Base, SessionLocal, engine
+from database import Base, engine
 from utils import get_db
-from Product.product_model import Product
+
+from Product import product_model
+
 from Product.product_router import router as product_router
 
 # Create the main FastAPI application instance
@@ -47,5 +49,5 @@ def check_database_connection(db: Session = Depends(get_db)):
     Check database connectivity by returning the number of rows in
     the products table.
     """
-    return {"row_count": db.query(Product).count()}
+    return {"row_count": db.query(product_model.Product).count()}
 
