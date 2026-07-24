@@ -35,7 +35,7 @@ async def create_product(product: ProductSchema, db: Session = Depends(get_db)):
 @router.get("/", status_code=status.HTTP_200_OK)
 async def get_products(db: Session = Depends(get_db)):
     """
-    Retrieve all products currently stored in memory.
+    Retrieve all products currently stored in the database.
     """
     return db.query(Product).all()
 
