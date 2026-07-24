@@ -1,17 +1,16 @@
 from fastapi import APIRouter, status
-from database import SessionLocal
+from Product.product_model import Product
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from utils import get_db
 
 from Product.product_schema import ProductSchema
 
 # Create a router instance for product related endpoints
 router = APIRouter()
 
-# In memory list to store products
-products_list = []
-
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_product(product: ProductSchema):
+async def create_product(product: ProductSchema, db: Session = Depends(get_db)):
     """
     Create a new product with the provided details.
 
@@ -20,20 +19,29 @@ async def create_product(product: ProductSchema):
     cost_per_unit or quantity_in_stock), FastAPI will return a 422
     response before this function is executed.
     """
-    products_list.append(product)
-    return product.model_dump()
+    db_product = Product(
+        name=product.name,
+        unit=product.unit,
+        cost_per_unit=product.cost_per_unit,
+        price_per_unit=product.price_per_unit,
+        quantity_in_stock=product.quantity_in_stock,
+    )
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    return db_product
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def get_products():
+async def get_products(db: Session = Depends(get_db)):
     """
     Retrieve all products currently stored in memory.
     """
-    return [product.model_dump() for product in products_list]
+    return db.query(Product).all()
 
 
 @router.get("/search", status_code=status.HTTP_200_OK)
-async def search_product(name: str, unit: str = "each"):
+async def search_product(name: str, unit: str = "each", db: Session = Depends(get_db)):
     """
     Search for a product by name and unit.
 
@@ -41,8 +49,4 @@ async def search_product(name: str, unit: str = "each"):
         name: The product name to search for.
         unit: Optional unit filter (defaults to "each").
     """
-    return [
-        product.model_dump()
-        for product in products_list
-        if product.name == name and product.unit == unit
-    ]
+    return db.query(Product).filter(Product.name == name, Product.unit == unit).all()
