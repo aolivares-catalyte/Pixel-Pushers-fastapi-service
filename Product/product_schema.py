@@ -26,3 +26,26 @@ class ProductSchema(BaseModel):
         if cost_per_unit is not None and cost_per_unit > value:
             raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
         return value
+
+
+class ProductResponseSchema(BaseModel):
+   """
+   Schema representing what will be returned in response to a request.
+
+   Fields:
+   id (int) Unique identifier
+   name (str) Name of the product
+   unit (str) Uit of measuerement of each product
+    cost_per_unit (float): Cost of the product per unit. Must be greater than 0.
+    price_per_unit (float): Selling price of the product per unit.
+                                    Must be greater than or equal to cost_per_unit.
+    quantity_in_stock (float): Quantity of the product currently in stock.
+                                       Must be greater than or equal to 0.
+   """
+
+   id: int
+   name: str
+   unit: str
+   cost_per_unit: float
+   price_per_unit: float
+   quantity_in_stock: float
