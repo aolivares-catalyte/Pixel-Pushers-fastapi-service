@@ -20,3 +20,7 @@ Requierments
 5. Create a response that only shows the user information that we want to display
         we as a product owner want to create a response that filters certain information to be shown when requested
                 we need to create a schema for a product search response that shows certain data about the not all
+
+
+Allens comments:
+Good job translating the requirments into technical requirments. You should add more about status and endpoints and explain why you made decsions about some fields.
