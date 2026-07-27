@@ -344,3 +344,8 @@ As a garden center employee, I want a clear message when no products match my ca
 5. API Responses Do Not Leak Implementation Details
 
 As the garden center technology partner, I want the data returned by the API to be intentional and controlled, so that the API has a stable and predictable contract regardless of internal database structure.
+
+
+### Comments-Allen
+Very nice job! I like how apecific each part was and I was left with no questions on how to complete the project.
+
