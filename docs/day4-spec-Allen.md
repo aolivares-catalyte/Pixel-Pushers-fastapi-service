@@ -125,3 +125,11 @@ In the original spec, I proposed separate summary and detail schemas. I have rev
 
 *   **Why:** The existing `Product` model and `ProductSchema` contain a very lean set of properties—only ID, name, unit, cost, price, and stock quantity. There are no heavy text fields (like long descriptions) or metadata to trim out.
 *   **Client Benefit:** Using a unified schema reduces the maintenance burden on the backend by keeping Pydantic models DRY, while the payload size remains lightweight enough to not negatively impact client performance on grid views.
+
+
+## Document Review (Bill)
+
+- 1.0 We dont need ProuductOut to inherit ProductSchema 
+- 1.1 This is not a list of plants it is a list of products in which some of them are plants
+- 1.4 I dont think modifying quantity is in the business requirements at all
+- OverAll you should tie the technical requirements to the business requirements more
