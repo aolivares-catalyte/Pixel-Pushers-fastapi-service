@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends, HTTPException
 from database import SessionLocal
 
 from Product.product_schema import ProductSchema
@@ -46,3 +46,13 @@ async def search_product(name: str, unit: str = "each"):
         for product in products_list
         if product.name == name and product.unit == unit
     ]
+
+@router.get("/{product_id}", status_code=status.HTTP_200_OK, response_model=ProductResponseSchema)
+async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a product by its ID from the database.
+    """
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    return product
