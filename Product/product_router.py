@@ -1,8 +1,9 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from database import SessionLocal
 from sqlalchemy.orm import Session
-from typing import List
-from Product.product_schema import ProductSchema
+from Product.product_model import Product
+from utils import get_db
+
+from Product.product_schema import *
 
 # Create a router instance for product related endpoints
 router = APIRouter()
@@ -11,8 +12,8 @@ router = APIRouter()
 products_list = []
 
 
-@router.post("/", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
-def create_product(product: ProductSchema, db: Session = Depends(get_db)):
+@router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
+def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     """
     Create a new product with the provided details and persist it to the database.
 
@@ -40,21 +41,26 @@ def create_product(product: ProductSchema, db: Session = Depends(get_db)):
         )
 
 
-@router.get("/", response_model=List[ProductOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=ProductListResponse, status_code=status.HTTP_200_OK)
 def get_products(db: Session = Depends(get_db)):
     """
     Retrieve all products currently stored in the database.
     """
+    products = db.query(Product).all()
+    if not products:
+        return {"message": "No products found", "products": []}
 
     products = db.query(Product).all()
 
-    return products
+    return {"message": "Products Found", "products": products}
 
 
-@router.get("/search", response_model=List[ProductOut], status_code=status.HTTP_200_OK)
+@router.get(
+    "/search", response_model=ProductListResponse, status_code=status.HTTP_200_OK
+)
 def search_product(name: str, unit: str = "each", db: Session = Depends(get_db)):
     """
-    Search for a product by name and unit in the database.
+    Search for a product by namgit e and unit in the database.
 
     Query parameters:
         name: The product name to search for.
@@ -71,7 +77,7 @@ def search_product(name: str, unit: str = "each", db: Session = Depends(get_db))
 @router.get(
     "/{product_id}",
     status_code=status.HTTP_200_OK,
-    response_model=ProductResponseSchema,
+    response_model=ProductRead,
 )
 async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
     """
