@@ -1,4 +1,4 @@
-\## Technical Specification: Garden Center API
+## Technical Specification: Garden Center API
 
 ### 1. Endpoints & Payloads
 
