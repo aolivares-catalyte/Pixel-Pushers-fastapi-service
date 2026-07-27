@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status
+from database import SessionLocal
 
 from Product.product_schema import ProductSchema
 
