@@ -1,7 +1,9 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from database import SessionLocal
+from sqlalchemy.orm import Session
+from Product.product_model import Product
+from utils import get_db
 
-from Product.product_schema import ProductSchema
+from Product.product_schema import *
 
 # Create a router instance for product related endpoints
 router = APIRouter()
@@ -11,7 +13,7 @@ products_list = []
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_product(product: ProductSchema):
+async def create_product(product: ProductCreate):
     """
     Create a new product with the provided details.
 
@@ -47,7 +49,7 @@ async def search_product(name: str, unit: str = "each"):
         if product.name == name and product.unit == unit
     ]
 
-@router.get("/{product_id}", status_code=status.HTTP_200_OK, response_model=ProductResponseSchema)
+@router.get("/{product_id}", status_code=status.HTTP_200_OK, response_model=ProductRead)
 async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
     """
     Retrieve a product by its ID from the database.

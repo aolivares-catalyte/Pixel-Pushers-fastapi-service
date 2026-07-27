@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 
-class ProductSchema(BaseModel):
+class ProductCreate(BaseModel):
     """
     Schema representing a product in inventory.
 
@@ -28,7 +28,7 @@ class ProductSchema(BaseModel):
         return value
 
 
-class ProductResponseSchema(BaseModel):
+class ProductRead(BaseModel):
    """
    Schema representing what will be returned in response to a request.
 
@@ -49,3 +49,13 @@ class ProductResponseSchema(BaseModel):
    cost_per_unit: float
    price_per_unit: float
    quantity_in_stock: float
+
+   class Config:
+       orm_mode = True
+
+class ProductListResponse(BaseModel):
+    """
+    Schema representing a response containing a list of products.
+    """
+    message: str
+    products_list: list[ProductRead]

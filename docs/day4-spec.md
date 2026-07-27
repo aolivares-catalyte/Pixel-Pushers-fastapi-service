@@ -15,7 +15,7 @@
 
 ### Request Body Shape
 
-- POST /products request body (ProductSchema):
+- POST /products request body (ProductCreate):
         ```json
         {
             "name": "Basil Plant",
@@ -123,7 +123,7 @@
 
 ### Responsibility Split: Validation vs Database vs Route Logic
 
-- Pydantic schema (ProductSchema):
+- Pydantic schema (ProductCreate):
     - Validates incoming request data and constraints.
     - Invalid input is rejected with 422 before route logic proceeds.
 - SQLAlchemy model (Product):
@@ -136,7 +136,7 @@
 
 ### Returned Fields Decision and Rationale
 
-- ProductResponseSchema fields returned:
+- ProductRead fields returned:
     - id
     - name
     - unit
@@ -152,21 +152,21 @@
 
 ### 1. Store Product Objects in Postgres
 
-Given a validated SQLAlchemy Product instance, when the application is connected to the Postgres database through the get_db session dependency, the instance must be added to the session, committed, and refreshed. The resulting record must be permanently stored in the products table and returned to the client using ProductResponseSchema.
+Given a validated SQLAlchemy Product instance, when the application is connected to the Postgres database through the get_db session dependency, the instance must be added to the session, committed, and refreshed. The resulting record must be permanently stored in the products table and returned to the client using ProductRead.
 
 - The persistence operation occurs inside the POST /products endpoint.
-- The endpoint converts a validated Pydantic ProductSchema into a SQLAlchemy Product.
+- The endpoint converts a validated Pydantic ProductCreate into a SQLAlchemy Product.
 - The database write flow is open session, add, commit, refresh, return.
 - Errors:
     - Validation errors return 422.
     - Database failures return 500.
 - Response:
-    - 201 Created with ProductResponseSchema.
+    - 201 Created with ProductRead.
     - No SQLAlchemy objects are returned directly.
 
 ### 2. List All Products
 
-When a client performs a GET /products request, the service queries the Postgres products table using the SQLAlchemy session provided by get_db. The endpoint returns 200 OK with a response object that contains a message and a list of ProductResponseSchema objects.
+When a client performs a GET /products request, the service queries the Postgres products table using the SQLAlchemy session provided by get_db. The endpoint returns 200 OK with a response object that follows ProductListResponse and contains a message and a list of ProductRead objects.
 
 - Endpoint: GET /products
 - Database interaction:
@@ -204,13 +204,13 @@ When a client performs a GET /products request, the service queries the Postgres
 
 ### 3. Get Product by ID
 
-When a client performs a GET /products/{product_id} request, the service queries the products table by primary key. If the product exists, return 200 OK with a single ProductResponseSchema object. If the product does not exist, return 404 Not Found with a clear message.
+When a client performs a GET /products/{product_id} request, the service queries the products table by primary key. If the product exists, return 200 OK with a single ProductRead object. If the product does not exist, return 404 Not Found with a clear message.
 
 - Endpoint: GET /products/{product_id}
 - Path parameters:
     - product_id: int
 - Response behavior:
-    - Found: 200 OK with ProductResponseSchema.
+    - Found: 200 OK with ProductRead.
     - Not found: 404 Not Found with a message such as "Product not found".
 
 ### 4. Search Products by Name and Optional Unit
@@ -263,12 +263,12 @@ When a client performs a GET /products/search request with query parameters, the
 
 All product endpoints must return Pydantic response models rather than raw SQLAlchemy objects.
 
-- ProductResponseSchema is the response schema for returning one product object.
+- ProductRead is the response schema for returning one product object.
 - Endpoint mapping:
-    - POST /products -> ProductResponseSchema
-    - GET /products/{product_id} -> ProductResponseSchema
-    - GET /products -> object containing message and list of ProductResponseSchema
-    - GET /products/search -> object containing message and list of ProductResponseSchema
+    - POST /products -> ProductRead
+    - GET /products/{product_id} -> ProductRead
+    - GET /products -> ProductListResponse
+    - GET /products/search -> message + list of ProductRead
 - SQLAlchemy objects must be serialized through Pydantic before returning.
 
 ### 6. Database Session Dependency
@@ -288,22 +288,22 @@ All product endpoints must use the get_db FastAPI dependency to obtain a databas
 
 ### 7. Input Validation
 
-All incoming product creation requests must be validated using ProductSchema. Invalid data must return 422 Unprocessable Entity from FastAPI/Pydantic.
+All incoming product creation requests must be validated using ProductCreate. Invalid data must return 422 Unprocessable Entity from FastAPI/Pydantic.
 
 - Validation:
     - Pydantic enforces field types and constraints.
 - Error behavior:
     - FastAPI automatically returns 422 with validation details.
 - Conversion:
-    - Validated ProductSchema is converted to SQLAlchemy Product before persistence.
+    - Validated ProductCreate is converted to SQLAlchemy Product before persistence.
 
 ### 8. Consistent API Shape
 
 All product endpoints must follow a predictable response contract.
 
 - Single-resource endpoints return one object:
-    - POST /products -> ProductResponseSchema
-    - GET /products/{product_id} -> ProductResponseSchema
+    - POST /products -> ProductRead
+    - GET /products/{product_id} -> ProductRead
 - List endpoints return an object with a message and a list:
     - GET /products -> { message, products: [...] }
     - GET /products/search -> { message, results: [...] }
@@ -317,7 +317,7 @@ All product endpoints must follow a predictable response contract.
 The API must never return raw SQLAlchemy model instances, session-bound objects, or ORM-specific fields.
 
 - SQLAlchemy internals such as _sa_instance_state must never appear in response payloads.
-- Use ProductResponseSchema for product serialization.
+- Use ProductRead for product serialization.
 - Ensures:
     - Clean JSON
     - Stable API contract
