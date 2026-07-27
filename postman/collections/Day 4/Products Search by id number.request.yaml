@@ -1,0 +1,5 @@
+$kind: http-request
+name: Products Search by id number
+url: http://127.0.0.1:8000/products/6/
+method: GET
+order: 1785181838065

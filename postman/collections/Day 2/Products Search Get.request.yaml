@@ -1,6 +1,0 @@
-$kind: http-request
-name: Products Search Get
-method: GET
-url: "http://127.0.0.1:8000/products/search?name= "
-queryParams:
-  name: " "

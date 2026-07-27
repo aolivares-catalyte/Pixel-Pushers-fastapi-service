@@ -71,7 +71,9 @@ def search_product(name: str, unit: str = "each", db: Session = Depends(get_db))
         db.query(Product).filter(Product.name == name, Product.unit == unit).all()
     )
 
-    return products
+    if products:
+        return {"message": "Products Found", "products": products}
+    return {"message": "No products found", "products": []}
 
 
 @router.get(
