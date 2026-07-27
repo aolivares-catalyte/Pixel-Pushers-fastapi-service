@@ -60,7 +60,7 @@ def get_products(db: Session = Depends(get_db)):
 )
 def search_product(name: str, unit: str = "each", db: Session = Depends(get_db)):
     """
-    Search for a product by namgit e and unit in the database.
+    Search for a product by name and unit in the database.
 
     Query parameters:
         name: The product name to search for.
