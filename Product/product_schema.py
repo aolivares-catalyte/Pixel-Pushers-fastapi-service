@@ -58,4 +58,4 @@ class ProductListResponse(BaseModel):
     Schema representing a response containing a list of products.
     """
     message: str
-    products_list: list[ProductRead]
+    products: list[ProductRead]
