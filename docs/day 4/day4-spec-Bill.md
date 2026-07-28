@@ -85,6 +85,7 @@ quantity_in_stock >= 0
 
 - **GET /products**
     - Status: **200 OK**
+    - Returns: **ProductListResponse** containing a **list of ProductRead** objects
     - Body (non-empty):
     ```json
     {
@@ -268,14 +269,15 @@ Given a validated **SQLAlchemy Product** instance, when the application is conne
 
 ### 2. List All Products
 
-When a client performs a **GET /products** request, the service queries the Postgres products table using the **SQLAlchemy** session provided by `get_db`. The endpoint returns **200 OK** with a response object that contains a message and a list of **ProductRead** objects.
+When a client performs a **GET /products** request, the service queries the Postgres products table using the **SQLAlchemy** session provided by `get_db`. The endpoint returns **200 OK** with a **ProductListResponse** containing a **list of ProductRead** objects.
 
 - **Endpoint**: **GET /products**
+- **Returns**: **List of ProductRead** objects wrapped in **ProductListResponse**
 - **Database interaction**:
     - Use `db.query(Product).all()`.
     - No filtering and no pagination for Day 4.
 - **Response shape**:
-    - **200 OK**
+    - **200 OK** with **ProductListResponse**
         - Body (non-empty):
         ```json
         {
@@ -410,8 +412,8 @@ All product endpoints must follow a **predictable response contract**.
     - **POST /products** → **ProductRead**
     - **GET /products/{id}** → **ProductRead**
 - **List endpoints** return an object with a message and a list:
-    - **GET /products** → **ProductListResponse**
-    - **GET /products/search** → `{ message, results: [...] }`
+    - **GET /products** → **ProductListResponse** (contains message and **list of ProductRead**)
+    - **GET /products/search** → `{ message, results: [list of ProductRead] }`
 - **Empty list responses** are explicit and informative:
     - `products: []` with message `"No products found"`
     - `results: []` with message `"No matching products found"`
