@@ -51,3 +51,14 @@ def check_database_connection(db: Session = Depends(get_db)):
     """
     return {"row_count": db.query(product_model.Product).count()}
 
+##
+#allen function here
+##
+
+##
+#Bill function here
+##
+
+##
+#Deondre function here
+##
