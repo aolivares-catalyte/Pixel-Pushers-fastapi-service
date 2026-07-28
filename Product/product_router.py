@@ -119,3 +119,16 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete product in the database.",
         )
+
+
+##
+#allen function here
+##
+
+##
+@app.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
+##
+
+##
+#Deondre function here
+##
