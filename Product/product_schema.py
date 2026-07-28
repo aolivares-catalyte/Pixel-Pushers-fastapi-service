@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+
 class ProductCreate(BaseModel):
     """
     Schema representing a product in inventory.
@@ -13,6 +14,7 @@ class ProductCreate(BaseModel):
         quantity_in_stock (float): Quantity of the product currently in stock.
                                    Must be greater than or equal to 0.
     """
+
     name: str
     unit: str
     cost_per_unit: float = Field(..., gt=0)
@@ -24,7 +26,32 @@ class ProductCreate(BaseModel):
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
-            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
+        return value
+
+
+class ProductFullUpdate(BaseModel):
+    """
+    Schema for fully replacing an existing product (PUT).
+    All fields are required.
+    """
+
+    name: str
+    unit: str
+    cost_per_unit: float = Field(..., gt=0)
+    price_per_unit: float
+    quantity_in_stock: float = Field(..., ge=0)
+
+    @field_validator("price_per_unit", mode="before")
+    def validate_price_per_unit(cls, value, info):
+        """Validate that the product is not being sold at a loss."""
+        cost_per_unit = info.data.get("cost_per_unit")
+        if cost_per_unit is not None and cost_per_unit > value:
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
         return value
 
 class ProductUpdatePartial(BaseModel):
@@ -89,5 +116,6 @@ class ProductListResponse(BaseModel):
     """
     Schema representing a response containing a list of products.
     """
+
     message: str
     products: list[ProductRead]
