@@ -88,7 +88,11 @@ async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
     Retrieve a product by its ID from the database.
     Returns 404 if the product does not exist or has been soft-deleted.
     """
-    product = db.query(Product).filter(Product.id == product_id, Product.is_deleted == False).first()
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.is_deleted == False)
+        .first()
+    )
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
@@ -102,7 +106,11 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     Soft delete a product by setting its is_deleted flag to True.
     Returns 404 if the product does not exist or is already soft-deleted.
     """
-    product = db.query(Product).filter(Product.id == product_id, Product.is_deleted == False).first()
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.is_deleted == False)
+        .first()
+    )
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
@@ -122,17 +130,68 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
 
 
 ##
-#allen function here
-##
+@router.put("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
+def update_product(
+    product_id: int,
+    product_update: ProductFullUpdate,
+    db: Session = Depends(get_db),
+):
+    """
+    Fully update an existing product (full replacement).
+    - Returns 404 if product is not found (not soft-deleted).
+    - Only returns allowed fields (prevents SQLAlchemy leakage).
+    - All update logic and DB commit is error-handled.
+    """
+    # Find product. Only update "active" (not deleted) products if your model supports soft-deletes.
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.is_deleted == False)
+        .first()
+    )
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    # Map validated fields from request body to SQLAlchemy model instance
+    product.name = product_update.name
+    product.unit = product_update.unit
+    product.cost_per_unit = product_update.cost_per_unit
+    product.price_per_unit = product_update.price_per_unit
+    product.quantity_in_stock = product_update.quantity_in_stock
+
+    try:
+        db.commit()
+        db.refresh(product)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update product in the database.",
+        )
+
+    return product
+
 
 ##
-@router.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
-def patch_product(product_id: int, product_update: ProductCreate, db: Session = Depends(get_db)):
+
+
+##
+@router.patch(
+    "/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK
+)
+def patch_product(
+    product_id: int, product_update: ProductCreate, db: Session = Depends(get_db)
+):
     """
     Update an existing product's details in the database.
     Returns 404 if the product does not exist or has been soft-deleted.
     """
-    product = db.query(Product).filter(Product.id == product_id, Product.is_deleted == False).first()
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.is_deleted == False)
+        .first()
+    )
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
@@ -151,8 +210,10 @@ def patch_product(product_id: int, product_update: ProductCreate, db: Session = 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update product in the database.",
         )
+
+
 ##
 
 ##
-#Deondre function here
+# Deondre function here
 ##
