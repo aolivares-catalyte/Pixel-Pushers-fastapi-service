@@ -204,6 +204,17 @@ quantity_in_stock >= 0
     - Status: **422 Unprocessable Entity**
     - Body: Pydantic validation error
 
+- **Endpoint**: **POST, PUT, PATCH /products**, **GET /products**, **GET /products/{id}**, **GET /products/search**
+- When a database operation fails (commit, query, etc.):
+    - Status: **500 Internal Server Error**
+    - Body:
+    ```json
+    {
+        "detail": "Failed to [create/update/retrieve] product in the database."
+    }
+    ```
+    - Error handling: Exception caught, transaction rolled back, error message returned
+
 ### Responsibility Split: Validation vs Database vs Route Logic
 
 **Pydantic schema (ProductCreate, ProductFullUpdate, ProductUpdatePartial)**
@@ -229,6 +240,17 @@ quantity_in_stock >= 0
 **Route functions + dependency (get_db)**
 
 - Receive already-validated request data.
+- **All database operations (commit, query, refresh) are wrapped in try-except blocks**.
+- **Error handling pattern**:
+    ```
+    try:
+        db.commit()
+        db.refresh(new_product)  // or other query/operation
+        return response
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to [operation] product in the database.")
+    ```
 - Perform lookup/update/delete operations using **SQLAlchemy**.
 - Owns not-found logic for **GET/PUT/PATCH/DELETE**:
     - Missing product → **404 Not Found**
@@ -259,12 +281,14 @@ Given a validated **SQLAlchemy Product** instance, when the application is conne
 
 - The persistence operation occurs inside the **POST /products** endpoint.
 - The endpoint converts a validated Pydantic **ProductCreate** into a **SQLAlchemy Product**.
-- The database write flow: open session → add → commit → refresh → return.
-- Errors:
-    - Validation errors return **422**.
-    - Database failures return **500**.
+- The database write flow: open session → add → **try** { commit → refresh } → **catch** rollback → return.
+- **Error handling**:
+    - Database operation failures are caught in a **try-except** block.
+    - On exception: **rollback** the transaction and return **500 Internal Server Error**.
+    - Validation errors return **422** (before route logic runs).
+    - Database failures return **500** with message: `"Failed to create product in the database."`
 - Response:
-    - **201 Created** with **ProductRead**.
+    - **201 Created** with **ProductRead** (on success).
     - No SQLAlchemy objects are returned directly.
 
 ### 2. List All Products
