@@ -126,7 +126,31 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
 ##
 
 ##
-@app.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
+@router.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
+def patch_product(product_id: int, product_update: ProductCreate, db: Session = Depends(get_db)):
+    """
+    Update an existing product's details in the database.
+    Returns 404 if the product does not exist or has been soft-deleted.
+    """
+    product = db.query(Product).filter(Product.id == product_id, Product.is_deleted == False).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    for key, value in product_update.model_dump().items():
+        setattr(product, key, value)
+
+    try:
+        db.commit()
+        db.refresh(product)
+        return product
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update product in the database.",
+        )
 ##
 
 ##
