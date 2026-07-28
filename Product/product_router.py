@@ -1,4 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from Product.product_model import Product
 from utils import get_db
@@ -127,7 +129,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
 
 ##
 @router.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
-def patch_product(product_id: int, product_update: ProductCreate, db: Session = Depends(get_db)):
+def patch_product(product_id: int, product_update: ProductUpdatePartial, db: Session = Depends(get_db)):
     """
     Update an existing product's details in the database.
     Returns 404 if the product does not exist or has been soft-deleted.
@@ -138,9 +140,15 @@ def patch_product(product_id: int, product_update: ProductCreate, db: Session = 
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
 
-    for key, value in product_update.model_dump().items():
+    for key, value in product_update.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
 
+    try:
+        ProductRead.model_validate(product)
+    except ValidationError as e:
+        db.rollback()
+        raise RequestValidationError(e.errors())
+    
     try:
         db.commit()
         db.refresh(product)
@@ -151,8 +159,4 @@ def patch_product(product_id: int, product_update: ProductCreate, db: Session = 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update product in the database.",
         )
-##
-
-##
-#Deondre function here
 ##

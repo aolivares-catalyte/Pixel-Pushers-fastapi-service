@@ -1,0 +1,14 @@
+$kind: http-request
+name: Reset name of product with id number 4
+url: http://127.0.0.1:8000/products/4
+method: PATCH
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"Large Basil Plant\",\r
+
+    \    \"quantity_in_stock\": 55\r
+
+    }"
+order: 1785263469073
