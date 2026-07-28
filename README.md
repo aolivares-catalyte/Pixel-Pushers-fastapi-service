@@ -88,6 +88,21 @@ uvicorn main:app --reload
 
 To view API endpoint information visit the /docs/ endpoint.
 
+## Tasks Completed Day 4
+
+- [x] day4-spec Technical Specification
+- [x] Reviewed Personal Specifications with Team
+- [x] Store Product Objects in Postgres
+- [x] List All Products
+- [x] Get Product by ID
+- [x] Search Products by Name and Optional Unit
+- [x] Response Model Enforcement
+- [x] Database Session Dependency
+- [x] Input Validation
+- [x] Consistent API Shape
+- [x] No SQLAlchemy Leakage
+- [x] Comprehension Checkpoint
+
 ## Tasks Completed Day 3
 
 - [x] Postgres Confirmed Running and Reachable
