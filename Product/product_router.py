@@ -94,7 +94,7 @@ async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
     return product
 
 
-@router.delete("/", status_code=status.HTTP_200_OK)
+@router.delete("/{product_id}", status_code=status.HTTP_200_OK)
 async def delete_product(
     product_id: Optional[int] = None,
     name: Optional[str] = None,
@@ -122,3 +122,8 @@ async def delete_product(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Cannot delete product. No product found with {search_target}."
             )
+
+    db.delete(product)
+    db.commit()
+
+    return {"message": f"Product with ID {product_id} deleted successfully"}
