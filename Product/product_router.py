@@ -142,7 +142,7 @@ def update_product(
     - Only returns allowed fields (prevents SQLAlchemy leakage).
     - All update logic and DB commit is error-handled.
     """
-    # Find product. Only update "active" (not deleted) products if your model supports soft-deletes.
+
     product = (
         db.query(Product)
         .filter(Product.id == product_id, Product.is_deleted == False)
@@ -153,7 +153,6 @@ def update_product(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
 
-    # Map validated fields from request body to SQLAlchemy model instance
     product.name = product_update.name
     product.unit = product_update.unit
     product.cost_per_unit = product_update.cost_per_unit
