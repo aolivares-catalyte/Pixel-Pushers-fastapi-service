@@ -44,7 +44,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=ProductListResponse, status_code=status.HTTP_200_OK)
-def get_products(db: Session = Depends(get_db)):
+async def get_products(db: Session = Depends(get_db)):
     """
     Retrieve all products currently stored in the database.
     Soft-deleted products are automatically excluded.
@@ -59,7 +59,7 @@ def get_products(db: Session = Depends(get_db)):
 @router.get(
     "/search", response_model=ProductListResponse, status_code=status.HTTP_200_OK
 )
-def search_product(name: str, unit: str = "each", db: Session = Depends(get_db)):
+async def search_product(name: str, unit: str = "each", db: Session = Depends(get_db)):
     """
     Search for a product by name and unit in the database.
     Soft-deleted products are automatically excluded from results.
@@ -101,37 +101,8 @@ async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
         )
     return product
 
-
-@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    """
-    Soft delete a product by setting its is_deleted flag to True.
-    Returns 404 if the product does not exist or is already soft-deleted.
-    """
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id, Product.is_deleted == False)
-        .first()
-    )
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
-        )
-
-    try:
-        product.is_deleted = True
-        db.commit()
-        db.refresh(product)
-        return None
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete product in the database.",
-        )
-
 @router.put("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
-def update_product(
+async def update_product(
     product_id: int,
     product_update: ProductFullUpdate,
     db: Session = Depends(get_db),
@@ -175,7 +146,7 @@ def update_product(
 @router.patch(
     "/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK
 )
-def patch_product(
+async def patch_product(
     product_id: int, product_update: ProductUpdatePartial, db: Session = Depends(get_db)
 ):
     """
@@ -210,4 +181,33 @@ def patch_product(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update product in the database.",
+        )
+
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(product_id: int, db: Session = Depends(get_db)):
+    """
+    Soft delete a product by setting its is_deleted flag to True.
+    Returns 404 if the product does not exist or is already soft-deleted.
+    """
+    product = (
+        db.query(Product)
+        .filter(Product.id == product_id, Product.is_deleted == False)
+        .first()
+    )
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    try:
+        product.is_deleted = True
+        db.commit()
+        db.refresh(product)
+        return None
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete product in the database.",
         )
