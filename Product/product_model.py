@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Float, Integer
+from sqlalchemy import String, Float, Integer, Boolean
 
 from database import Base
 
@@ -19,3 +19,4 @@ class Product(Base):
     cost_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     quantity_in_stock: Mapped[float] = mapped_column(Float, nullable=False, index=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
