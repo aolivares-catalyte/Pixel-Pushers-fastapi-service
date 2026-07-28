@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session
 from Product.product_model import Product
@@ -91,3 +92,33 @@ async def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
     return product
+
+
+@router.delete("/", status_code=status.HTTP_200_OK)
+async def delete_product(
+    product_id: Optional[int] = None,
+    name: Optional[str] = None,
+    db: Session = Depends(get_db)
+   ):
+
+
+    if product_id is None and name is None:
+        raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Invalid entry. You must provide either 'product_id' or 'name' to delete a product."
+    )
+
+    query = db.query(Product)
+
+    if product_id is not None:
+            product = query.filter(Product.id == product_id).first()
+    else:
+            # Search by exact name (case-insensitive with ilike)
+            product = query.filter(Product.name.ilike(name)).first()
+
+    if not product:
+            search_target = f"ID '{product_id}'" if product_id is not None else f"name '{name}'"
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Cannot delete product. No product found with {search_target}."
+            )

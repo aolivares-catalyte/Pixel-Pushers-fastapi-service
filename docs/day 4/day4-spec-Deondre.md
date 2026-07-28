@@ -33,7 +33,7 @@ Day-5
 1. As a garden center manager I wanted to update existing products into the database so they will not delete and the final object update is varified 
     
     Now that the database has been connected save items into the database and be able to update them without error
-              
+              PRODUCTS/PUT
                {
                     "status": "success",
                     "code": "200"
@@ -55,6 +55,7 @@ Day-5
     
     Remove an item so employees or customers cant see it but keep previous sales data
                 
+                PRODUCT/DELETE
                 {
                 "id": "01",
                 "name": "Red Rose",
@@ -81,7 +82,7 @@ Day-5
 3. As a garden center manager I want to be able to see a clear message when deleting or updating an item that doesnt exist
     
     Create an endpoint that send out a clear error message when trying to update or delete non-existing product items
-
+                PRODUCT/GET
                 
                 {
                     "status": "success",
