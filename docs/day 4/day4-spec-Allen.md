@@ -282,8 +282,7 @@ As the garden center technology partner, I want the data returned by the API to 
   `json   {   "message": "Product Has been updated successfully",  "id": 101,       "name": "Basil Plant",       "unit": "each",       "cost_per_unit": 1.25,       "price_per_unit": 2.5,       "quantity_in_stock": 40   }`
 - DELETE /items/{id}
   - Status: 204 No content (Successful Delete)
-  - Body (non-empty):
-  `json   {       "message": "Product Has been deleted successfully",       "product": [           {               "id": 101,               "name": "Basil Plant",               "unit": "each",               "cost_per_unit": 1.25,               "price_per_unit": 2.5,               "quantity_in_stock": 40           }       ]   }`   
+  - Body: NONE
   
 
 ### Failure Response (Product Not Found by ID)
@@ -314,7 +313,7 @@ As the garden center technology partner, I want the data returned by the API to 
   - quantity_in_stock
 - Why these fields:
   - These are the specific details the garden center manager needs to modify so that the catalog reflects reality without needing to delete and recreate the item.
-  -The endpoint must retain its response_model to enforce the output shape. This ensures every outcome has a predictable, documented contract for anyone integrating with the API
+  - The endpoint must retain its response_model to enforce the output shape. This ensures every outcome has a predictable, documented contract for anyone integrating with the API
 
 
 
@@ -322,18 +321,21 @@ As the garden center technology partner, I want the data returned by the API to 
 
 
 
-### Update Endpoint (PUT /products/{id})
+### Update Endpoint (PUT /items/{id})
 
--Method & Path: PUT /products/{id}. 
--Request Body: A JSON payload governed by the Pydantic schema containing product fields such as price, cost, stock, and name.  -Success Response: Returns a 200 status code with the updated product body, utilizing the established response_model.  
--Failure Response (Not Found): If the target ID does not exist, the API returns a 404 Not Found status code with a clear error message in the body. 
--Failure Layer: The "not found" failure is caught via a manual check in the route, triggering an HTTPException to prevent an unhandled 500 server error.
+- Method & Path: PUT /items/{id}. 
+- Request Body: A JSON payload governed by the Pydantic schema containing product fields such as price, cost, stock, and name.  -Success Response: Returns a 200 status code with the updated product body, utilizing the established response_model.  
+- Failure Response (Not Found): If the target ID does not exist, the API returns a 404 Not Found status code with a clear error message in the body. 
+- Failure Layer: The "not found" failure is caught via a manual check in the route, triggering an HTTPException to prevent an unhandled 500 server error.
+### Update type: Full replacement
+- Field Requirements: Because this endpoint uses the PUT HTTP method, it requires a full replacement of the resource. All fields defined in the Pydantic update schema (name, unit, cost_per_unit, price_per_unit, quantity_in_stock) are required in the request body. If a client omits any of these fields, the request will be rejected by Pydantic validation before it ever reaches the database.
 
 
 
-### Delete Endpoint (DELETE /products/{id})
 
-1. Method & Path: DELETE /products/{id}.  
+### Delete Endpoint (DELETE /items/{id})
+
+1. Method & Path: DELETE /items/{id}.  
 2. Success Response: Returns a 204 status code with no response body.  
 3. Failure Response (Not Found): If the target ID does not exist, the API returns a 404 Not Found status code with a clear error message in the body.  
 4. Failure Layer: Similar to the update endpoint, the "not found" failure is caught via a manual check in the route, triggering an HTTPException.  
@@ -343,25 +345,39 @@ As the garden center technology partner, I want the data returned by the API to 
 2. Failure Response (Invalid Input): Violating the validation rule results in a 422 Unprocessable Entity status code. The response body contains a readable explanation of the error rather than a raw stack trace. 
 3. Failure Layer: Invalid data failures are caught immediately by Pydantic validation before the request ever reaches the route logic or the database layer.  
 
+### Failure Response (Invalid Input):
+Status: 422 Unprocessable Entity
+Body: 
+```json {    "detail": [
+        {
+            "loc": [
+                "body",
+                "price_per_unit"
+            ],
+            "msg": "Input should be greater than 0",
+            "type": "greater_than"
+        }
+    ]
+}
+```
+Reason: This error shape isolates exactly where the bad data is (loc) and provides a human-readable explanation (msg). This ensures the client knows precisely why the request was rejected without having to parse a server stack trace.
 
-
-
-1.Update an Existing Product
+1. Update an Existing Product
 
 As a garden center manager, I want to update a product's details (price, cost, stock, name) after it's been created, so that the catalog reflects reality without needing to delete and recreate the item.
 
-2.Remove a Discontinued Product
+2. Remove a Discontinued Product
 
 As a garden center manager, I want to permanently remove a product from the catalog, so that discontinued items no longer show up for staff or customers.
 
-3.Clear Failure When Updating or Deleting Something That Doesn't Exist
+3. Clear Failure When Updating or Deleting Something That Doesn't Exist
 
 As a garden center employee, I want a clear, correct response when I try to update or delete a product that isn't in the system, so that I know immediately it wasn't found rather than getting a server error or a false success.
 
-4.Reject Invalid Data Before It Reaches the Database
+4. Reject Invalid Data Before It Reaches the Database
 
 As the garden center's technology partner, I want obviously invalid input (like a negative price) rejected immediately with a readable explanation, so that bad data never gets a chance to corrupt the catalog and staff aren't left guessing what went wrong.
 
-5.A Predictable, Documented Contract for Every Outcome
+5. A Predictable, Documented Contract for Every Outcome
 
 As the garden center's technology partner, I want every endpoint's possible responses, success and failure, documented and verifiable, so that anyone integrating with this API knows exactly what to expect in every case.
