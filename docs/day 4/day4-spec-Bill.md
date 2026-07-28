@@ -21,7 +21,8 @@
 
 ### Request Body Shape
 
-- POST /products request body (ProductCreate):
+- **POST /products** request body (**ProductCreate**):
+    - **All fields required.**
     ```json
     {
         "name": "Basil Plant",
@@ -31,7 +32,8 @@
         "quantity_in_stock": 40
     }
     ```
-- PUT /products/{id} request body (ProductFullUpdate):
+- **PUT /products/{id}** request body (**ProductFullUpdate**):
+    - **Full replacement. All fields required.**
     ```json
     {
         "name": "Basil Plant",
@@ -41,25 +43,34 @@
         "quantity_in_stock": 40
     }
     ```
-- PATCH /products/{id} request body (ProductUpdatePartial):
+- **PATCH /products/{id}** request body (**ProductUpdatePartial**):
+    - **Only provided fields are updated. All fields optional.**
     ```json
     {
         "name": "Large Basil Plant",
         "quantity_in_stock": 55
     }
     ```
-    or
-    ```json
-    {
-        "price_per_unit": 2.75
-    }
-    ```
-- GET /products, GET /products/{id}, and GET /products/search do not use a request body.
+- **GET /products**, **GET /products/{id}**, and **GET /products/search** do not use a request body.
+
+### Input Validation Rules
+
+Validation occurs at the **Pydantic layer**:
+
+```
+cost_per_unit > 0
+price_per_unit >= cost_per_unit
+quantity_in_stock >= 0
+```
+
+- **PUT**: all fields validated
+- **PATCH**: only provided fields validated
+- **Invalid input** returns **422 Unprocessable Entity**
 
 ### Successful Response Shapes
 
-- POST /products
-    - Status: 201 Created
+- **POST /products**
+    - Status: **201 Created**
     - Body:
     ```json
     {
@@ -72,8 +83,8 @@
     }
     ```
 
-- GET /products
-    - Status: 200 OK
+- **GET /products**
+    - Status: **200 OK**
     - Body (non-empty):
     ```json
     {
@@ -98,8 +109,8 @@
     }
     ```
 
-- GET /products/{id}
-    - Status: 200 OK
+- **GET /products/{id}**
+    - Status: **200 OK**
     - Body:
     ```json
     {
@@ -112,8 +123,8 @@
     }
     ```
 
-- GET /products/search?name={name}&unit={unit}
-    - Status: 200 OK
+- **GET /products/search?name={name}&unit={unit}**
+    - Status: **200 OK**
     - Body (matches found):
     ```json
     {
@@ -138,9 +149,9 @@
     }
     ```
 
-- PUT /products/{id}
-    - Status: 200 OK
-    - Body: ProductResponseSchema
+- **PUT /products/{id}**
+    - Status: **200 OK**
+    - Body: **ProductRead**
     ```json
     {
         "id": 101,
@@ -152,13 +163,13 @@
     }
     ```
 
-- DELETE /products/{id}
-    - Status: 204 No Content
+- **DELETE /products/{id}**
+    - Status: **204 No Content**
     - Body: None
 
-- PATCH /products/{id}
-    - Status: 200 OK
-    - Body: ProductResponseSchema
+- **PATCH /products/{id}**
+    - Status: **200 OK**
+    - Body: **ProductRead**
     ```json
     {
         "id": 101,
@@ -170,11 +181,11 @@
     }
     ```
 
-### Failure Response for Requirement 4 (Product Not Found by ID)
+### Failure Responses
 
-- Endpoint: GET, PUT, DELETE, PATCH /products/{id}
+- **Endpoint**: **GET, PUT, DELETE, PATCH /products/{id}**
 - When product does not exist:
-    - Status: 404 Not Found
+    - Status: **404 Not Found**
     - Body:
     ```json
     {
@@ -182,69 +193,89 @@
     }
     ```
 
-- Endpoint: PUT, DELETE, PATCH /products/{id}
-- When an updated or deleted product body is invalid (PUT/PATCH only)
-    - Status: 422 Unprocessable Entity
+- **Endpoint**: **PUT, PATCH /products/{id}**
+- When product body is invalid:
+    - Status: **422 Unprocessable Entity**
     - Body: Pydantic validation error
 
-- Endpoint: POST /products
-- When a new product body is invalid
-    - Status: 422 Unprocessable Entity
+- **Endpoint**: **POST /products**
+- When product body is invalid:
+    - Status: **422 Unprocessable Entity**
     - Body: Pydantic validation error
 
 ### Responsibility Split: Validation vs Database vs Route Logic
 
-- Pydantic schema (ProductCreate):
-    - Validates incoming request data and constraints.
-    - Invalid input is rejected with 422 before route logic proceeds.
-- SQLAlchemy model (Product):
-    - Maps Python objects to the products table columns.
-    - Represents persisted database records.
-- Route functions + dependency (get_db):
-    - Receive validated request data.
-    - Perform query/filter/create actions using SQLAlchemy and session.
-    - Handle commit/refresh on writes and return response payloads.
+**Pydantic schema (ProductCreate, ProductFullUpdate, ProductUpdatePartial)**
+
+- Validates incoming request data and constraints before any route logic runs.
+- Enforces validation rules:
+    ```
+    cost_per_unit > 0
+    price_per_unit >= cost_per_unit
+    quantity_in_stock >= 0
+    ```
+- **PUT**: all fields validated.
+- **PATCH**: only provided fields validated.
+- Invalid input is rejected with **422** before route logic proceeds.
+
+**SQLAlchemy model (Product)**
+
+- Maps Python objects to the products table columns.
+- Represents persisted database records.
+- Does not enforce business validation rules — those belong to **Pydantic**.
+- Raises database-level errors only for structural issues (e.g., missing row, constraint violations).
+
+**Route functions + dependency (get_db)**
+
+- Receive already-validated request data.
+- Perform lookup/update/delete operations using **SQLAlchemy**.
+- Owns not-found logic for **GET/PUT/PATCH/DELETE**:
+    - Missing product → **404 Not Found**
+- **PUT**: replace all fields.
+- **PATCH**: update only provided fields.
+- **DELETE**: remove product; return **204** on success.
+- Handle commit/refresh on writes and return response payloads.
 
 ### Returned Fields Decision and Rationale
 
-- ProductRead fields returned:
-    - id
-    - name
-    - unit
-    - cost_per_unit
-    - price_per_unit
-    - quantity_in_stock
+- **ProductRead** fields returned:
+    - `id`
+    - `name`
+    - `unit`
+    - `cost_per_unit`
+    - `price_per_unit`
+    - `quantity_in_stock`
 - Why these fields:
     - They are the business fields needed by clients for catalog display, stock checks, and margin awareness.
-    - id is required for stable single-item lookup and client-side linking.
+    - `id` is required for stable single-item lookup and client-side linking.
     - Returning only schema-defined fields prevents ORM/session internals from leaking and keeps the API contract predictable.
 
 ## Technical Specs
 
 ### 1. Store Product Objects in Postgres
 
-Given a validated SQLAlchemy Product instance, when the application is connected to the Postgres database through the get_db session dependency, the instance must be added to the session, committed, and refreshed. The resulting record must be permanently stored in the products table and returned to the client using ProductRead.
+Given a validated **SQLAlchemy Product** instance, when the application is connected to the Postgres database through the `get_db` session dependency, the instance must be added to the session, committed, and refreshed. The resulting record must be permanently stored in the products table and returned to the client using **ProductRead**.
 
-- The persistence operation occurs inside the POST /products endpoint.
-- The endpoint converts a validated Pydantic ProductCreate into a SQLAlchemy Product.
-- The database write flow is open session, add, commit, refresh, return.
+- The persistence operation occurs inside the **POST /products** endpoint.
+- The endpoint converts a validated Pydantic **ProductCreate** into a **SQLAlchemy Product**.
+- The database write flow: open session → add → commit → refresh → return.
 - Errors:
-    - Validation errors return 422.
-    - Database failures return 500.
+    - Validation errors return **422**.
+    - Database failures return **500**.
 - Response:
-    - 201 Created with ProductRead.
+    - **201 Created** with **ProductRead**.
     - No SQLAlchemy objects are returned directly.
 
 ### 2. List All Products
 
-When a client performs a GET /products request, the service queries the Postgres products table using the SQLAlchemy session provided by get_db. The endpoint returns 200 OK with a response object that contains a message and a list of ProductRead objects.
+When a client performs a **GET /products** request, the service queries the Postgres products table using the **SQLAlchemy** session provided by `get_db`. The endpoint returns **200 OK** with a response object that contains a message and a list of **ProductRead** objects.
 
-- Endpoint: GET /products
-- Database interaction:
-    - Use db.query(Product).all().
+- **Endpoint**: **GET /products**
+- **Database interaction**:
+    - Use `db.query(Product).all()`.
     - No filtering and no pagination for Day 4.
-- Response shape:
-    - 200 OK
+- **Response shape**:
+    - **200 OK**
         - Body (non-empty):
         ```json
         {
@@ -268,31 +299,31 @@ When a client performs a GET /products request, the service queries the Postgres
             "products": []
         }
         ```
-- Empty catalog behavior:
-    - Return 200 OK.
-    - Return products as an empty list.
-    - Return message as "No products found".
+- **Empty catalog behavior**:
+    - Return **200 OK**.
+    - Return `products` as an empty list.
+    - Return `message` as `"No products found"`.
 
 ### 3. Get Product by ID
 
-When a client performs a GET /products/{id} request, the service queries the products table by primary key. If the product exists, return 200 OK with a single ProductRead object. If the product does not exist, return 404 Not Found with a clear message.
+When a client performs a **GET /products/{id}** request, the service queries the products table by primary key. If the product exists, return **200 OK** with a single **ProductRead** object. If the product does not exist, return **404 Not Found** with a clear message.
 
-- Endpoint: GET /products/{id}
-- Path parameters:
-    - id: int
-- Response behavior:
-    - Found: 200 OK with ProductRead.
-    - Not found: 404 Not Found with a message such as "Product not found".
+- **Endpoint**: **GET /products/{id}**
+- **Path parameters**:
+    - `id`: `int`
+- **Response behavior**:
+    - **Found**: **200 OK** with **ProductRead**.
+    - **Not found**: **404 Not Found** with message `"Product not found"`.
 
 ### 4. Search Products by Name and Optional Unit
 
-When a client performs a GET /products/search request with query parameters, the service returns matching products from Postgres. Search responses always use list semantics and never return 404 for no matches.
+When a client performs a **GET /products/search** request with query parameters, the service returns matching products from Postgres. Search responses always use **list semantics** and never return **404** for no matches.
 
-- Endpoint: GET /products/search?name={name}&unit={unit}
-- Query parameters:
-    - name: str (required)
-    - unit: Optional[str] (default: "each")
-- Search logic:
+- **Endpoint**: **GET /products/search?name={name}&unit={unit}**
+- **Query parameters**:
+    - `name`: `str` (required)
+    - `unit`: `Optional[str]` (default: `"each"`)
+- **Search logic**:
     ```python
     query = db.query(Product)
     query = query.filter(Product.name.ilike(f"%{name}%"))
@@ -300,8 +331,8 @@ When a client performs a GET /products/search request with query parameters, the
         query = query.filter(Product.unit == unit)
     results = query.all()
     ```
-- Response shape:
-    - 200 OK
+- **Response shape**:
+    - **200 OK**
         - Body (matches found):
         ```json
         {
@@ -325,74 +356,74 @@ When a client performs a GET /products/search request with query parameters, the
             "results": []
         }
         ```
-- Empty search behavior:
-    - Return 200 OK.
-    - Return results as an empty list.
-    - Return message as "No matching products found".
+- **Empty search behavior**:
+    - Return **200 OK**.
+    - Return `results` as an empty list.
+    - Return `message` as `"No matching products found"`.
 
 ### 5. Response Model Enforcement
 
-All product endpoints must return Pydantic response models rather than raw SQLAlchemy objects.
+All product endpoints must return **Pydantic response models** rather than raw **SQLAlchemy objects**.
 
-- ProductRead is the response schema for returning one product object.
-- Endpoint mapping:
-    - POST /products -> ProductRead
-    - GET /products/{id} -> ProductRead
-    - GET /products -> ProductListResponse (contains message and list of ProductRead)
-    - GET /products/search -> object containing message and list of ProductRead
-- SQLAlchemy objects must be serialized through Pydantic before returning.
+- **ProductRead** is the response schema for returning one product object.
+- **Endpoint mapping**:
+    - **POST /products** → **ProductRead**
+    - **GET /products/{id}** → **ProductRead**
+    - **GET /products** → **ProductListResponse** (contains message and list of **ProductRead**)
+    - **GET /products/search** → object containing message and list of **ProductRead**
+- **SQLAlchemy** objects must be serialized through **Pydantic** before returning.
 
 ### 6. Database Session Dependency
 
-All product endpoints must use the get_db FastAPI dependency to obtain a database session. Route handlers must not manually create sessions.
+All product endpoints must use the `get_db` **FastAPI dependency** to obtain a database session. Route handlers must not manually create sessions.
 
-- Use: db: Session = Depends(get_db)
-- Dependency responsibilities:
+- **Use**: `db: Session = Depends(get_db)`
+- **Dependency responsibilities**:
     - Open and close the session.
-- Route responsibilities:
+- **Route responsibilities**:
     - Execute query logic.
     - Commit for successful writes.
     - Roll back when write operations fail.
-- Benefits:
+- **Benefits**:
     - Prevents connection leaks.
     - Keeps transaction handling explicit and consistent.
 
 ### 7. Input Validation
 
-All incoming product requests (create and update) must be validated using their respective Pydantic schemas. Invalid data must return 422 Unprocessable Entity from FastAPI/Pydantic.
+All incoming product requests (create and update) must be validated using their respective **Pydantic schemas**. Invalid data must return **422 Unprocessable Entity** from **FastAPI/Pydantic**.
 
-- Validation by endpoint:
-    - POST /products: Validate with ProductCreate (all fields required).
-    - PUT /products/{id}: Validate with ProductFullUpdate (all fields required) - to be defined for Day 5.
-    - PATCH /products/{id}: Validate with ProductUpdatePartial (fields are optional) - to be defined for Day 5.
+- **Validation by endpoint**:
+    - **POST /products**: Validate with **ProductCreate** (all fields required).
+    - **PUT /products/{id}**: Validate with **ProductFullUpdate** (all fields required) - to be defined for Day 5.
+    - **PATCH /products/{id}**: Validate with **ProductUpdatePartial** (fields are optional) - to be defined for Day 5.
     - Pydantic enforces field types and constraints.
-- Error behavior:
-    - FastAPI automatically returns 422 with validation details.
-- Conversion:
-    - Validated schema is converted to SQLAlchemy Product before persistence.
+- **Error behavior**:
+    - **FastAPI** automatically returns **422** with validation details.
+- **Conversion**:
+    - Validated schema is converted to **SQLAlchemy Product** before persistence.
 
 ### 8. Consistent API Shape
 
-All product endpoints must follow a predictable response contract.
+All product endpoints must follow a **predictable response contract**.
 
-- Single-resource endpoints return one object:
-    - POST /products -> ProductRead
-    - GET /products/{id} -> ProductRead
-- List endpoints return an object with a message and a list:
-    - GET /products -> ProductListResponse
-    - GET /products/search -> { message, results: [...] }
-- Empty list responses are explicit and informative:
-    - products: [] with message "No products found"
-    - results: [] with message "No matching products found"
+- **Single-resource endpoints** return one object:
+    - **POST /products** → **ProductRead**
+    - **GET /products/{id}** → **ProductRead**
+- **List endpoints** return an object with a message and a list:
+    - **GET /products** → **ProductListResponse**
+    - **GET /products/search** → `{ message, results: [...] }`
+- **Empty list responses** are explicit and informative:
+    - `products: []` with message `"No products found"`
+    - `results: []` with message `"No matching products found"`
 - No null list fields and no mixed object-or-list return types.
 
 ### 9. No SQLAlchemy Leakage
 
-The API must never return raw SQLAlchemy model instances, session-bound objects, or ORM-specific fields.
+The API must never return raw **SQLAlchemy** model instances, session-bound objects, or ORM-specific fields.
 
-- SQLAlchemy internals such as _sa_instance_state must never appear in response payloads.
-- Use ProductRead for product serialization.
-- Ensures:
+- **SQLAlchemy internals** such as `_sa_instance_state` must never appear in response payloads.
+- Use **ProductRead** for product serialization.
+- **Ensures**:
     - Clean JSON
     - Stable API contract
     - No accidental exposure of internal implementation details
