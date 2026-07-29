@@ -93,6 +93,16 @@ Connection values in this example:
 - **database:** `pixel_pushers`
 - **username:** `postgres`
 
+4. **Add the database URL to a `.env` file**
+
+Create a `.env` file in the project root and store your database URL there:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pixel_pushers
+```
+
+The application should read the database connection from this environment variable.
+
 ---
 
 ## Running the Application
