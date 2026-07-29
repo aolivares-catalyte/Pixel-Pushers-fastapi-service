@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://127.0.0.1:8000/products/4
+method: PATCH
+body:
+  type: json
+  content: "{\r\n   \"price_per_unit\": 0 \r\n}"
+order: 1458050084961976
