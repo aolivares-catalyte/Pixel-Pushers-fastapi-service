@@ -1,3 +1,8 @@
+import sys
+import os
+
+# Add the project root directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from fastapi.testclient import TestClient
 from main import app
 
@@ -10,11 +15,11 @@ def test_create_product_happy_path():
     Proves that sending a valid payload successfully creates a product.
     """
     payload = {
-        "name": "Monstera Deliciosa",
-        "unit": "each",
-        "cost_per_unit": 20.00,
-        "price_per_unit": 45.99,
-        "quantity_in_stock": 10,
+        "name": "Cherry Tomatoes - 1lb Clamshell",
+        "unit": "lb",
+        "cost_per_unit": 1.10,
+        "price_per_unit": 3.49,
+        "quantity_in_stock": 52,
     }
 
     response = client.post("/products/", json=payload)
@@ -22,8 +27,8 @@ def test_create_product_happy_path():
     assert response.status_code == 201
 
     data = response.json()
-    assert data["name"] == "Monstera Deliciosa"
-    assert data["cost_per_unit"] == 20.00
-    assert data["price_per_unit"] == 45.99
+    assert data["name"] == "Cherry Tomatoes - 1lb Clamshell"
+    assert data["cost_per_unit"] == 1.10
+    assert data["price_per_unit"] == 3.49
 
     assert "id" in data
