@@ -1,146 +1,119 @@
 from fastapi.testclient import TestClient
+import pytest
 from main import app
 
 client = TestClient(app)
 
-def test_missing_unit_field_post():
-    payload = {
-        "name": "Basil Plant",
-        "cost_per_unit": 5.0,
-        "price_per_unit": 10.0,
-        "quantity_in_stock": 100
-    }
-
-    response = client.post("/products/", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
+def _assert_validation_response_shape(data):
     assert "detail" in data
     assert isinstance(data["detail"], list)
 
-    error = data["detail"][0]
-    assert error["loc"] == ["body", "unit"]
-    assert "field required" in error["msg"].lower()
 
-def test_bad_product_cost():
-    payload = {
-        "name": "Basil Plant",
-        "unit": "each",
-        "cost_per_unit": -5.0,
-        "price_per_unit": 10.0,
-        "quantity_in_stock": 100
-    }
+def _assert_error_by_field(errors, field, message_substring):
+    field_errors = [err for err in errors if err["loc"][-1] == field]
+    assert field_errors, f"No validation error found for field '{field}'"
+    assert any(message_substring in err["msg"].lower() for err in field_errors)
 
+
+@pytest.mark.parametrize(
+    "payload, expected_field, expected_message",
+    [
+        (
+            {
+                "name": "Basil Plant",
+                "cost_per_unit": 5.0,
+                "price_per_unit": 10.0,
+                "quantity_in_stock": 100,
+            },
+            "unit",
+            "field required",
+        ),
+        (
+            {
+                "name": "Basil Plant",
+                "unit": "each",
+                "cost_per_unit": -5.0,
+                "price_per_unit": 10.0,
+                "quantity_in_stock": 100,
+            },
+            "cost_per_unit",
+            "greater than 0",
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 1.00,
+                "quantity_in_stock": 38,
+            },
+            "price_per_unit",
+            "greater than or equal to cost_per_unit",
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 4.99,
+                "quantity_in_stock": -10,
+            },
+            "quantity_in_stock",
+            "greater than or equal to 0",
+        ),
+    ],
+    ids=["missing-unit", "bad-cost", "bad-price", "bad-quantity"],
+)
+def test_bad_product_post_single_error(payload, expected_field, expected_message):
     response = client.post("/products/", json=payload)
-
     assert response.status_code == 422
 
     data = response.json()
+    _assert_validation_response_shape(data)
+    _assert_error_by_field(data["detail"], expected_field, expected_message)
 
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
 
-    error = data["detail"][0]
-    assert error["loc"] == ["body", "cost_per_unit"]
-    assert "greater than 0" in error["msg"].lower()
-
-def test_bad_product_price():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 1.00,
-        "quantity_in_stock": 38
-    }
-
+@pytest.mark.parametrize(
+    "payload, expected_errors",
+    [
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": -1.75,
+                "price_per_unit": 4.99,
+                "quantity_in_stock": -38,
+            },
+            [
+                ("cost_per_unit", "greater than 0"),
+                ("quantity_in_stock", "greater than or equal to 0"),
+            ],
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 1.00,
+                "quantity_in_stock": -38,
+            },
+            [
+                ("price_per_unit", "greater than or equal to cost_per_unit"),
+                ("quantity_in_stock", "greater than or equal to 0"),
+            ],
+        ),
+    ],
+    ids=["bad-cost-and-quantity", "bad-price-and-quantity"],
+)
+def test_bad_product_post_multi_error(payload, expected_errors):
     response = client.post("/products/", json=payload)
-
     assert response.status_code == 422
 
     data = response.json()
+    _assert_validation_response_shape(data)
 
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error = data["detail"][0]
-    assert error["loc"] == ["body", "price_per_unit"]
-    assert "greater than or equal to cost_per_unit" in error["msg"].lower()
-
-def test_bad_product_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 4.99,
-        "quantity_in_stock": -10
-    }
-
-    response = client.post("/products/", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error = data["detail"][0]
-    assert error["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error["msg"].lower()
-
-def test_bad_product_cost_and_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": -1.75,
-        "price_per_unit": 4.99,
-        "quantity_in_stock": -38
-    }
-
-    response = client.post("/products/", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_cost = data["detail"][0]
-    assert error_cost["loc"] == ["body", "cost_per_unit"]
-    assert "greater than 0" in error_cost["msg"]
-
-    error_quantity = data["detail"][1]
-    assert error_quantity["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error_quantity["msg"]
-
-def test_bad_product_price_and_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 1.00,
-        "quantity_in_stock": -38
-    }
-
-    response = client.post("/products/", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_price = data["detail"][0]
-    assert error_price["loc"] == ["body", "price_per_unit"]
-    assert "greater than or equal to cost_per_unit" in error_price["msg"]
-
-    error_quantity = data["detail"][1]
-    assert error_quantity["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error_quantity["msg"]
+    for field, message in expected_errors:
+        _assert_error_by_field(data["detail"], field, message)
 
 def test_missing_search_parameter():
     response = client.get("/products/search")
@@ -156,193 +129,122 @@ def test_missing_search_parameter():
     assert error["loc"] == ["query", "name"]
     assert "field required" in error["msg"].lower()
 
-def test_bad_put_validation_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 1.00,
-        "quantity_in_stock": -38
-    }
-
+@pytest.mark.parametrize(
+    "payload, expected_errors",
+    [
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": -1.75,
+                "price_per_unit": 4.99,
+                "quantity_in_stock": 38,
+            },
+            [("cost_per_unit", "greater than 0")],
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 1.00,
+                "quantity_in_stock": 38,
+            },
+            [("price_per_unit", "greater than or equal to cost_per_unit")],
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 4.99,
+                "quantity_in_stock": 38,
+            },
+            [("unit", "field required")],
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": -1.75,
+                "price_per_unit": 4.99,
+                "quantity_in_stock": -38,
+            },
+            [
+                ("cost_per_unit", "greater than 0"),
+                ("quantity_in_stock", "greater than or equal to 0"),
+            ],
+        ),
+        (
+            {
+                "name": "Basil Plant - 4in Pot",
+                "unit": "each",
+                "cost_per_unit": 1.75,
+                "price_per_unit": 1.00,
+                "quantity_in_stock": -38,
+            },
+            [
+                ("price_per_unit", "greater than or equal to cost_per_unit"),
+                ("quantity_in_stock", "greater than or equal to 0"),
+            ],
+        ),
+    ],
+    ids=[
+        "bad-cost",
+        "bad-price",
+        "missing-unit",
+        "bad-cost-and-quantity",
+        "bad-price-and-quantity",
+    ],
+)
+def test_bad_put_validation(payload, expected_errors):
     response = client.put("/products/1", json=payload)
-
     assert response.status_code == 422
 
     data = response.json()
+    _assert_validation_response_shape(data)
 
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
+    for field, message in expected_errors:
+        _assert_error_by_field(data["detail"], field, message)
 
-    error_price = data["detail"][0]
-    assert error_price["loc"] == ["body", "price_per_unit"]
-    assert "greater than or equal to cost_per_unit" in error_price["msg"]
 
-    error_quantity = data["detail"][1]
-    assert error_quantity["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error_quantity["msg"]
-
-def test_bad_put_validation_cost():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": -1.75,
-        "price_per_unit": 4.99,
-        "quantity_in_stock": 38
-    }
-
-    response = client.put("/products/1", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_cost = data["detail"][0]
-    assert error_cost["loc"] == ["body", "cost_per_unit"]
-    assert "greater than 0" in error_cost["msg"]
-
-def test_bad_put_validation_price():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 1.00,
-        "quantity_in_stock": 38
-    }
-
-    response = client.put("/products/1", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_price = data["detail"][0]
-    assert error_price["loc"] == ["body", "price_per_unit"]
-    assert "greater than or equal to cost_per_unit" in error_price["msg"]
-
-def test_bad_put_validation_cost_and_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": -1.75,
-        "price_per_unit": 4.99,
-        "quantity_in_stock": -38
-    }
-
-    response = client.put("/products/1", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_cost = data["detail"][0]
-    assert error_cost["loc"] == ["body", "cost_per_unit"]
-    assert "greater than 0" in error_cost["msg"]
-
-    error_quantity = data["detail"][1]
-    assert error_quantity["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error_quantity["msg"]
-
-def test_bad_put_validation_price_and_quantity():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "unit": "each",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 1.00,
-        "quantity_in_stock": -38
-    }
-
-    response = client.put("/products/1", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_price = data["detail"][0]
-    assert error_price["loc"] == ["body", "price_per_unit"]
-    assert "greater than or equal to cost_per_unit" in error_price["msg"]
-
-    error_quantity = data["detail"][1]
-    assert error_quantity["loc"] == ["body", "quantity_in_stock"]
-    assert "greater than or equal to 0" in error_quantity["msg"]
-
-def test_bad_put_missing_unit():
-    payload = {
-        "name": "Basil Plant - 4in Pot",
-        "cost_per_unit": 1.75,
-        "price_per_unit": 4.99,
-        "quantity_in_stock": 38
-    }
-
-    response = client.put("/products/1", json=payload)
-
-    assert response.status_code == 422
-
-    data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    error_unit = data["detail"][0]
-    assert error_unit["loc"] == ["body", "unit"]
-    assert "field required" in error_unit["msg"].lower()
-
-def test_bad_patch_validation_price_and_quantity():
-    payload = {
-        "price_per_unit": 1.00,
-        "quantity_in_stock": -38
-    }
-
+@pytest.mark.parametrize(
+    "payload, expected_present_fields, expected_absent_fields, expected_messages",
+    [
+        (
+            {"price_per_unit": 1.00, "quantity_in_stock": -38},
+            ["quantity_in_stock"],
+            ["price_per_unit"],
+            ["greater than or equal to 0"],
+        ),
+        (
+            {"cost_per_unit": -1.75, "quantity_in_stock": -38},
+            ["cost_per_unit", "quantity_in_stock"],
+            [],
+            ["greater than 0", "greater than or equal to 0"],
+        ),
+    ],
+    ids=["bad-price-and-quantity", "bad-cost-and-quantity"],
+)
+def test_bad_patch_validation(
+    payload,
+    expected_present_fields,
+    expected_absent_fields,
+    expected_messages,
+):
     response = client.patch("/products/1", json=payload)
     assert response.status_code == 422
 
     data = response.json()
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
+    _assert_validation_response_shape(data)
 
     errors = data["detail"]
     locs = [err["loc"][-1] for err in errors]
 
-    # Only quantity_in_stock should fail
-    assert "quantity_in_stock" in locs
-    assert "price_per_unit" not in locs
+    for field in expected_present_fields:
+        assert field in locs
 
-    msgs = [err["msg"].lower() for err in errors]
-    assert any("greater than or equal to 0" in msg for msg in msgs)
+    for field in expected_absent_fields:
+        assert field not in locs
 
-
-def test_bad_patch_validation_cost_and_quantity():
-    payload = {
-        "cost_per_unit": -1.75,
-        "quantity_in_stock": -38
-    }
-
-    response = client.patch("/products/1", json=payload)
-    assert response.status_code == 422
-
-    data = response.json()
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
-
-    errors = data["detail"]
-    locs = [err["loc"][-1] for err in errors]
-
-    assert "cost_per_unit" in locs
-    assert "quantity_in_stock" in locs
-
-    msgs = [err["msg"].lower() for err in errors]
-
-    assert any("greater than 0" in msg for msg in msgs)
-    assert any("greater than or equal to 0" in msg for msg in msgs)
+    for message in expected_messages:
+        assert any(message in err["msg"].lower() for err in errors)
