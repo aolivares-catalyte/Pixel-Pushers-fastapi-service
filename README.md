@@ -1,142 +1,202 @@
 # Pixel Pushers FastAPI Service
 
-## Overview 
+## Overview
 
-A CLI-driven FastAPI application built as part of a multi-day training program.
-The project evolves from simple request/response handling (Day 1-2) into a real Postgres-backed API using SQLAlchemy (Day 3).
-The goal is to establish strong development habits, clean architecture, and responsible use of AI tooling.
+**Pixel Pushers FastAPI Service** is a training project that evolves across multiple days:
+
+- **Day 1-2:** basic request handling and in-memory data
+- **Day 3+:** real **Postgres + SQLAlchemy** integration
+- **Day 4-6:** production-style API behavior, validation, and test coverage
+
+The focus is on clean architecture, dependable API behavior, and strong development habits.
+
+---
 
 ## Prerequisites
 
-- Python 3.10 or newer
-- A virtual environment (venv)
-- Postgres installed locally or running via Docker
-- Postman (for API verification)
+Make sure these are installed before running the project:
+
+- **Python 3.10+**
+- **Virtual environment** support (`venv`)
+- **Postgres** (local install or Docker)
+- **Postman** (manual API verification)
+- **Pytest** (automated verification)
+
+---
 
 ## Installation
 
-1. Clone the repository:
+1. **Clone the repository**
 
-    ```bash
-    git clone https://github.com/aolivares-catalyte/Pixel-Pushers-fastapi-service.git
-    cd  Pixel-Pushers-fastapi-service
-    ```
+```bash
+git clone https://github.com/aolivares-catalyte/Pixel-Pushers-fastapi-service.git
+cd Pixel-Pushers-fastapi-service
+```
 
-2. Create and activate a virtual environment:
+2. **Create and activate a virtual environment**
 
-    ```bash
-    python -m venv .venv
-    .\.venv\Scripts\activate
-    ```
+PowerShell:
 
-3. Install required packages:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+Bash:
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate
+```
+
+3. **Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+---
 
 ## Postgres Setup
 
-Day 3 requires the app to connect to a real Postgres instance.
+Starting on **Day 3**, the app uses a real Postgres database.
 
-1. Install Postgres
+1. **Install Postgres**
 
-    You may install Postgres via:
+- Local installer: https://www.postgresql.org/
+- Docker (recommended):
 
-    - Local installer (postgres.org)
-    - Docker (recommended)
-    Example Docker command:
-    
-    ```bash
-    docker run --name pixel-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-    ```
+```bash
+docker run --name pixel-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+```
 
-2. Create the Database
+2. **Create the database**
 
-    Using psql:
+Using `psql`:
 
-    ```bash
-    psql -U postgres
-    CREATE DATABASE pixel_pushers;
-    ```
+```sql
+CREATE DATABASE pixel_pushers;
+```
 
-    Or using pgAdmin
+Or create it with **pgAdmin**.
 
-3. Connection Details
+3. **Connection string format**
 
-    The FastAPI app expects a connection string like:
+```text
+postgresql://postgres:postgres@localhost:5432/pixel_pushers
+```
 
-    ```bash
-    postgresql://postgres:postgres@localhost:5432/pixel_pushers
-    ```
+Connection values in this example:
 
-    In this example
-    - host: localhost
-    - post: 5432
-    - database: pixel_pushers
-    - username: postgres
+- **host:** `localhost`
+- **port:** `5432`
+- **database:** `pixel_pushers`
+- **username:** `postgres`
+
+4. **Add the database URL to a `.env` file**
+
+Create a `.env` file in the project root and store your database URL there:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pixel_pushers
+```
+
+The application should read the database connection from this environment variable.
+
+---
 
 ## Running the Application
 
-From the project root, run:
+From the project root:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-## API Endpoints
+Useful routes:
 
-To view API endpoint information visit the /docs/ endpoint.
+- `/docs` - interactive OpenAPI docs
+- `/products` - product endpoints
+
+---
+
+## Tasks Completed Day 6
+
+- [x] Introduced pytest for automated API verification
+- [x] Created required tests
+- [x] Happy path tests
+- [x] Bad path tests
+- [x] Not Found path tests
+- [x] Added validation tests for PUT/PATCH/POST
+- [x] Ensured tests hit real Postgres (no mocks)
+- [x] Cleaned up configuration modules
+- [x] Ensured predictable test behavior (no external state dependency)
+- [x] Verified FastAPI/Pydantic error message structure
+- [x] Updated README
+- [x] Comprehension Checkpoint
+
+## Tasks Completed Day 5
+
+- [x] Added `PUT /products/{id}` for full updates
+- [x] Added `PATCH /products/{id}` for partial updates
+- [x] Added `DELETE /products/{id}` with soft delete behavior
+- [x] Implemented consistent error responses (`404`, `422`)
+- [x] Extended day technical spec (did not replace it)
+- [x] Enforced validation rules for update operations
+- [x] Confirmed no SQLAlchemy leakage in update/delete responses
+- [x] Verified new endpoints via Postman
+- [x] Updated README
+- [x] Comprehension Checkpoint
 
 ## Tasks Completed Day 4
 
-- [x] day4-spec Technical Specification
-- [x] Reviewed Personal Specifications with Team
-- [x] Store Product Objects in Postgres
-- [x] List All Products
-- [x] Get Product by ID
-- [x] Search Products by Name and Optional Unit
-- [x] Response Model Enforcement
-- [x] Database Session Dependency
-- [x] Input Validation
-- [x] Consistent API Shape
-- [x] No SQLAlchemy Leakage
+- [x] day4-spec technical specification
+- [x] Reviewed personal specifications with team
+- [x] Stored product objects in Postgres
+- [x] Listed all products
+- [x] Got product by ID
+- [x] Searched products by name and optional unit
+- [x] Enforced response model
+- [x] Added database session dependency
+- [x] Added input validation
+- [x] Maintained consistent API shape
+- [x] Avoided SQLAlchemy leakage
 - [x] Comprehension Checkpoint
 
 ## Tasks Completed Day 3
 
-- [x] Postgres Confirmed Running and Reachable
-- [x] SQLAlchemy and Driver Installed
-- [x] Database Connection Module Created
-- [x] Product SQLAlchemy Model Created
-- [x] Create/Drop Strategy Implemented
-- [x] Connectivity Verified via Endpoint
-- [x] Postman Collection Updated
-- [x] README Updated
+- [x] Postgres confirmed running and reachable
+- [x] SQLAlchemy and driver installed
+- [x] Database connection module created
+- [x] Product SQLAlchemy model created
+- [x] Create/drop strategy implemented
+- [x] Connectivity verified via endpoint
+- [x] Postman collection updated
+- [x] README updated
 - [ ] Comprehension Checkpoint
 
 ## Tasks Completed Day 2
 
-- [x] Product Pydantic Model Created
-- [x] POST Endpoint Accepting the Product Model
-- [x] In-Memory Storage of Products
-- [x] GET /products Endpoint Returns All Products
-- [x] Query Parameters Added for Searching
-- [x] Validation Rules Reflecting Real Business Constraints
-- [x] Postman Collection Updated
-- [x] README Updated
-- [x] Comprehension Checkpoint (Individual, No AI Assistance)
+- [x] Product Pydantic model created
+- [x] POST endpoint accepts product model
+- [x] In-memory storage for products
+- [x] `GET /products` returns all products
+- [x] Query parameters added for searching
+- [x] Validation rules reflecting business constraints
+- [x] Postman collection updated
+- [x] README updated
+- [x] Comprehension Checkpoint (individual, no AI assistance)
 
 ## Tasks Completed Day 1
 
-- [x] GitHub Repository Created and Shared
-- [x] All Team Members Added as Collaborators
-- [x] .gitignore File Added
+- [x] GitHub repository created and shared
+- [x] Team collaborators added
+- [x] `.gitignore` added
 - [x] README created
-- [x] Virtual Environment Created and Used
-- [x] FastAPI and Uvicorn Installed
-- [x] Basic "Hello World" Endpoint
-- [x] Endpoint With a Path Parameter
-- [x] Verification via Postman
-- [x] requirements.txt Created
+- [x] Virtual environment created and used
+- [x] FastAPI and Uvicorn installed
+- [x] Basic "Hello World" endpoint
+- [x] Endpoint with a path parameter
+- [x] Verified via Postman
+- [x] `requirements.txt` created
 - [x] Comprehension Checkpoint
