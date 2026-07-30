@@ -1,6 +1,6 @@
 """Pydantic schemas used by the category API routes."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from Product.product_schema import ProductRead
 
@@ -14,6 +14,8 @@ class CategoryCreate(BaseModel):
 
 class CategoryRead(BaseModel):
     """Response schema for a single category."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     name: str
@@ -29,6 +31,8 @@ class CategoryListResponse(BaseModel):
 
 class CategoryReadWithProducts(BaseModel):
     """Response schema for a category including nested products."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     name: str

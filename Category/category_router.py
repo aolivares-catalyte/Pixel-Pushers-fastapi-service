@@ -27,7 +27,7 @@ def create_category(
     try:
         db.commit()
         db.refresh(new_category)
-        return new_category
+        return CategoryRead.model_validate(new_category)
     except Exception as exc:
         db.rollback()
         raise HTTPException(
@@ -41,9 +41,10 @@ def get_categories(db: Session = Depends(get_db)) -> CategoryListResponse:
     """Return all categories or an empty response payload."""
     categories = db.query(Category).all()
     if not categories:
-        return {"message": "No categories found", "categories": []}
+        return CategoryListResponse(message="No categories found", categories=[])
 
-    return {"message": "Categories Found", "categories": categories}
+    category_reads = [CategoryRead.model_validate(item) for item in categories]
+    return CategoryListResponse(message="Categories Found", categories=category_reads)
 
 
 @router.get(
@@ -59,7 +60,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)) -> CategoryRea
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Category with ID {category_id} not found.",
         )
-    return category
+    return CategoryRead.model_validate(category)
 
 
 @router.get(
@@ -78,7 +79,7 @@ def get_category_with_products(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Category with ID {category_id} not found.",
         )
-    return category
+    return CategoryReadWithProducts.model_validate(category)
 
 
 @router.put(
@@ -105,7 +106,7 @@ def update_category(
     try:
         db.commit()
         db.refresh(category)
-        return category
+        return CategoryRead.model_validate(category)
     except Exception as exc:
         db.rollback()
         raise HTTPException(

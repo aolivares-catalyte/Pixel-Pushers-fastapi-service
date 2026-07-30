@@ -39,7 +39,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)) -> Pro
     try:
         db.commit()
         db.refresh(new_product)
-        return new_product
+        return ProductRead.model_validate(new_product)
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
@@ -59,9 +59,10 @@ async def get_products(db: Session = Depends(get_db)) -> ProductListResponse:
     """Return all non-deleted products."""
     products = db.query(Product).filter(Product.is_deleted.is_(False)).all()
     if not products:
-        return {"message": "No products found", "products": []}
+        return ProductListResponse(message="No products found", products=[])
 
-    return {"message": "Products Found", "products": products}
+    product_reads = [ProductRead.model_validate(item) for item in products]
+    return ProductListResponse(message="Products Found", products=product_reads)
 
 
 @router.get("/search", response_model=ProductListResponse, status_code=status.HTTP_200_OK)
@@ -82,8 +83,9 @@ async def search_product(
     )
 
     if products:
-        return {"message": "Products Found", "products": products}
-    return {"message": "No matching products found", "products": []}
+        product_reads = [ProductRead.model_validate(item) for item in products]
+        return ProductListResponse(message="Products Found", products=product_reads)
+    return ProductListResponse(message="No matching products found", products=[])
 
 
 @router.get("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
@@ -102,7 +104,7 @@ async def get_product_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found",
         )
-    return product
+    return ProductRead.model_validate(product)
 
 
 @router.put("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
@@ -156,7 +158,7 @@ async def update_product(
             detail="Failed to update product in the database.",
         ) from exc
 
-    return product
+    return ProductRead.model_validate(product)
 
 
 @router.patch("/{product_id}", response_model=ProductRead, status_code=status.HTTP_200_OK)
@@ -199,7 +201,7 @@ async def patch_product(
     try:
         db.commit()
         db.refresh(product)
-        return product
+        return ProductRead.model_validate(product)
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
