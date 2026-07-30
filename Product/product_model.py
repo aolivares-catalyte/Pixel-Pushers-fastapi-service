@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Float, Integer, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Float, Integer, Boolean
+
 from database import Base
 
 
@@ -21,21 +22,3 @@ class Product(Base):
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     quantity_in_stock: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id"), nullable=False
-    )
-
-    category: Mapped["Category"] = relationship(back_populates="products")
-
-
-class Category(Base):
-    """
-    Defines the Category model for organizing inventory items.
-    """
-
-    __tablename__ = "categories"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False, unique=True, index=True)
-
-    products: Mapped[list["Product"]] = relationship(back_populates="category")

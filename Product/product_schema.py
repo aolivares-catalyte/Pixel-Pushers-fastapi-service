@@ -20,7 +20,6 @@ class ProductCreate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
-    category_id: int = Field(..., gt=0)
 
     @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
@@ -110,7 +109,6 @@ class ProductRead(BaseModel):
     cost_per_unit: float = Field(gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(ge=0)
-    category_id: int
 
     @field_validator("price_per_unit")
     def validate_price_not_loss(cls, value, info):
@@ -122,42 +120,10 @@ class ProductRead(BaseModel):
         return value
 
 
-class ProductReadWithCategory(ProductRead):
-    """
-    Nested schema for when we query a product directly.
-    It includes the full CategoryRead object (showing the name, not just the ID).
-    """
-
-    category: CategoryRead
-
-
 class ProductListResponse(BaseModel):
     """
     Schema representing a response containing a list of products.
     """
 
     message: str
-    products: list[ProductRead]
-
-
-class CategoryCreate(BaseModel):
-    """Schema for creating a new category."""
-
-    name: str
-
-
-class CategoryRead(BaseModel):
-    """Schema for reading a category (without its nested products)."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    name: str
-
-
-class CategoryWithProducts(CategoryRead):
-    """
-    Nested schema for retrieving a category along with all its associated products.
-    """
-
     products: list[ProductRead]
