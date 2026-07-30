@@ -20,6 +20,7 @@ class ProductCreate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_id: int = Field(..., gt=0)
 
     @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
@@ -54,6 +55,7 @@ class ProductFullUpdate(BaseModel):
             )
         return value
 
+
 class ProductUpdatePartial(BaseModel):
     """
     Schema representing a partial update to a product in inventory.
@@ -67,6 +69,7 @@ class ProductUpdatePartial(BaseModel):
         quantity_in_stock (Optional[float]): Quantity of the product currently in stock.
                                               Must be greater than or equal to 0.
     """
+
     name: str | None = None
     unit: str | None = None
     cost_per_unit: float | None = Field(default=None, gt=0)
@@ -78,7 +81,9 @@ class ProductUpdatePartial(BaseModel):
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
-            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
         return value
 
 
@@ -96,6 +101,7 @@ class ProductRead(BaseModel):
         quantity_in_stock (float): Quantity of the product currently in stock.
                                     Must be greater than or equal to 0.
     """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -104,13 +110,26 @@ class ProductRead(BaseModel):
     cost_per_unit: float = Field(gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(ge=0)
+    category_id: int
 
     @field_validator("price_per_unit")
     def validate_price_not_loss(cls, value, info):
         cost = info.data.get("cost_per_unit")
         if cost is not None and value < cost:
-            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
         return value
+
+
+class ProductReadWithCategory(ProductReadBase):
+    """
+    Nested schema for when we query a product directly.
+    It includes the full CategoryRead object (showing the name, not just the ID).
+    """
+
+    category: CategoryRead
+
 
 class ProductListResponse(BaseModel):
     """
@@ -119,3 +138,26 @@ class ProductListResponse(BaseModel):
 
     message: str
     products: list[ProductRead]
+
+
+class CategoryCreate(BaseModel):
+    """Schema for creating a new category."""
+
+    name: str
+
+
+class CategoryRead(BaseModel):
+    """Schema for reading a category (without its nested products)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+
+
+class CategoryWithProducts(CategoryRead):
+    """
+    Nested schema for retrieving a category along with all its associated products.
+    """
+
+    products: list[ProductReadBase]
