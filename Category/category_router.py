@@ -94,4 +94,3 @@ def update_category(category_id: int, category_update: CategoryCreate, db: Sessi
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update category in the database.",
         )
-
