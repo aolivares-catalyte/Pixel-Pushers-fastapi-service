@@ -109,7 +109,7 @@ class ProductRead(BaseModel):
     def validate_price_not_loss(cls, value, info):
         cost = info.data.get("cost_per_unit")
         if cost is not None and value < cost:
-            raise ValueError("price_per_unit must be >= cost_per_unit")
+            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
         return value
 
 class ProductListResponse(BaseModel):
