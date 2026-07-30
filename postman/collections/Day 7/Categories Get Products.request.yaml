@@ -1,0 +1,31 @@
+$kind: http-request
+name: Categories Get Products
+method: GET
+url: 'http://127.0.0.1:8000/categories/1/products'
+tests:
+  - name: 'Status code is 200'
+    script: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+  - name: 'Response has id, name, description, and products fields'
+    script: |-
+      pm.test("Response has id, name, description, and products fields", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json).to.have.property("name");
+        pm.expect(json).to.have.property("description");
+        pm.expect(json).to.have.property("products");
+        pm.expect(json.products).to.be.an("array");
+      });
+  - name: 'Response id matches requested category id'
+    script: |-
+      pm.test("Response id matches requested category id", function () {
+        const json = pm.response.json();
+        pm.expect(json.id).to.eql(1);
+      });
+  - name: 'Response time is less than 500ms'
+    script: |-
+      pm.test("Response time is less than 500ms", function () {
+        pm.expect(pm.response.responseTime).to.be.below(500);
+      });
