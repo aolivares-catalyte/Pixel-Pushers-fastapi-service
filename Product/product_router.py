@@ -2,6 +2,7 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from Product.product_model import Product
 from Category.category_model import Category
 from utils import get_db
@@ -33,14 +34,18 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
                 detail=f"Category with ID {new_product.category_id} not found.",
             )
 
-
     try:
 
         db.commit()
 
         db.refresh(new_product)
         return new_product
-
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Category with ID {new_product.category_id} does not exist.",
+        )
     except Exception as e:
 
         db.rollback()
@@ -130,13 +135,6 @@ async def update_product(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
-    if product_update.category_id is not None:
-        category = db.query(Category).filter(Category.id == product_update.category_id).first()
-        if not category:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Category with ID {product_update.category_id} not found.",
-            )
 
     product.name = product_update.name
     product.unit = product_update.unit
@@ -145,9 +143,23 @@ async def update_product(
     product.quantity_in_stock = product_update.quantity_in_stock
     product.category_id = product_update.category_id
 
+    if product_update.category_id is not None:
+        category = db.query(Category).filter(Category.id == product_update.category_id).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {product_update.category_id} not found.",
+            )
+
     try:
         db.commit()
         db.refresh(product)
+    except IntegrityError as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Foreign key constraint violated: invalid category_id.",
+            )
     except Exception:
         db.rollback()
         raise HTTPException(
@@ -181,6 +193,12 @@ async def patch_product(
     for key, value in product_update.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
 
+    try:
+        ProductRead.model_validate(product)
+    except ValidationError as e:
+        db.rollback()
+        raise RequestValidationError(e.errors())
+
     if product_update.category_id is not None:
         category = db.query(Category).filter(Category.id == product_update.category_id).first()
         if not category:
@@ -188,17 +206,17 @@ async def patch_product(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Category with ID {product_update.category_id} not found.",
             )
-
-    try:
-        ProductRead.model_validate(product)
-    except ValidationError as e:
-        db.rollback()
-        raise RequestValidationError(e.errors())
     
     try:
         db.commit()
         db.refresh(product)
         return product
+    except IntegrityError as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Foreign key constraint violated: invalid category_id.",
+            )
     except Exception as e:
         db.rollback()
         raise HTTPException(
