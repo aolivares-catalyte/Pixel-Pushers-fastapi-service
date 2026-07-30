@@ -126,6 +126,7 @@ async def update_product(
     product.cost_per_unit = product_update.cost_per_unit
     product.price_per_unit = product_update.price_per_unit
     product.quantity_in_stock = product_update.quantity_in_stock
+    product.category_id = product_update.category_id
 
     try:
         db.commit()

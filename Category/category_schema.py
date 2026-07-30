@@ -51,4 +51,4 @@ class CategoryReadWithProducts(BaseModel):
     id: int
     name: str
     description: str
-    products: list[ProductRead] = []
+    products: list[ProductRead] = Field(default_factory=list)

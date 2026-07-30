@@ -28,8 +28,8 @@ class Product(Base):
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     quantity_in_stock: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id"), nullable=False
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.id"), nullable=True
     )
 
     category: Mapped["Category"] = relationship(back_populates="products")
