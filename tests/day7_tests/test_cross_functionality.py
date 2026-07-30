@@ -1,11 +1,19 @@
+"""Cross-feature tests validating category/product relationship behavior."""
+
+
 def test_cross_category_reassignment_reflects_in_category_products(
-    client, create_category, create_product
-):
+    client,
+    create_category,
+    create_product,
+) -> None:
+    """Verify reassigned products move between category product lists."""
     primary_category = create_category(
-        name="Cross Primary", description="Initial category for product"
+        name="Cross Primary",
+        description="Initial category for product",
     ).json()
     secondary_category = create_category(
-        name="Cross Secondary", description="Target category for reassignment"
+        name="Cross Secondary",
+        description="Target category for reassignment",
     ).json()
 
     created_product = create_product(
@@ -28,18 +36,23 @@ def test_cross_category_reassignment_reflects_in_category_products(
         f"/categories/{secondary_category['id']}/products"
     ).json()["products"]
 
-    assert all(p["id"] != created_product["id"] for p in first_category_products)
-    assert any(p["id"] == created_product["id"] for p in second_category_products)
+    assert all(product["id"] != created_product["id"] for product in first_category_products)
+    assert any(product["id"] == created_product["id"] for product in second_category_products)
 
 
 def test_cross_create_products_in_two_categories_and_verify_grouping(
-    client, create_category, create_product
-):
+    client,
+    create_category,
+    create_product,
+) -> None:
+    """Verify products appear only in their assigned category collections."""
     herbs_category = create_category(
-        name="Cross Herbs", description="Herb category"
+        name="Cross Herbs",
+        description="Herb category",
     ).json()
     flowers_category = create_category(
-        name="Cross Flowers", description="Flower category"
+        name="Cross Flowers",
+        description="Flower category",
     ).json()
 
     herb_product = create_product(
@@ -67,13 +80,18 @@ def test_cross_create_products_in_two_categories_and_verify_grouping(
 
 
 def test_cross_put_product_with_valid_category_updates_relationship(
-    client, create_category, create_product
-):
+    client,
+    create_category,
+    create_product,
+) -> None:
+    """Verify a full product update can move category ownership."""
     source_category = create_category(
-        name="Cross Put Source", description="Source category"
+        name="Cross Put Source",
+        description="Source category",
     ).json()
     target_category = create_category(
-        name="Cross Put Target", description="Target category"
+        name="Cross Put Target",
+        description="Target category",
     ).json()
 
     product = create_product(

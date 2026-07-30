@@ -1,22 +1,22 @@
-def test_read_root(client):
-    """Test the default health-style greeting."""
+"""Positive-path integration tests for product and root endpoints."""
+
+
+def test_read_root(client) -> None:
+    """Verify the root endpoint returns the expected greeting payload."""
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Hello World"}
 
 
-def test_db_check(client):
-    """Test the database connectivity endpoint."""
+def test_db_check(client) -> None:
+    """Verify the database connectivity endpoint returns a row count."""
     response = client.get("/db-check")
     assert response.status_code == 200
     assert "row_count" in response.json()
 
 
-def test_create_product_validation_failure(client):
-    """
-    Test 2: Bad path / Validation failure.
-    Proves that sending invalid data (negative cost) is rejected by Pydantic.
-    """
+def test_create_product_validation_failure(client) -> None:
+    """Verify invalid product payloads are rejected during create."""
     payload = {
         "name": "Invalid Tomato",
         "unit": "each",
@@ -29,22 +29,15 @@ def test_create_product_validation_failure(client):
     assert response.status_code == 422
 
 
-def test_get_product_not_found(client):
-    """
-    Test 3: Not-found case.
-    Proves that requesting a non-existent product returns a 404.
-    """
+def test_get_product_not_found(client) -> None:
+    """Verify requesting a missing product id returns 404."""
     response = client.get("/products/9999999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Product not found"}
 
 
-def test_full_product_lifecycle_without_category(client):
-    """
-    Tests the complete lifecycle of a product to avoid database state issues.
-    Covers POST, GET, PUT, PATCH, and DELETE in one isolated flow.
-    """
-
+def test_full_product_lifecycle_without_category(client) -> None:
+    """Verify create/read/search/update/patch/delete lifecycle for one product."""
     payload = {
         "name": "Test Lifecycle Plant",
         "unit": "each",
@@ -60,7 +53,7 @@ def test_full_product_lifecycle_without_category(client):
     assert get_res.status_code == 200
     assert get_res.json()["name"] == "Test Lifecycle Plant"
 
-    search_res = client.get(f"/products/search?name=Test Lifecycle Plant&unit=each")
+    search_res = client.get("/products/search?name=Test Lifecycle Plant&unit=each")
     assert search_res.status_code == 200
     assert len(search_res.json()["products"]) > 0
 
@@ -82,7 +75,8 @@ def test_full_product_lifecycle_without_category(client):
     assert get_deleted_res.status_code == 404
 
 
-def test_create_product_with_category_relationship(client, create_category):
+def test_create_product_with_category_relationship(client, create_category) -> None:
+    """Verify creating a product with a valid category persists the relationship."""
     category_response = create_category(
         name="Lifecycle Herbs",
         description="Category used for linked product create",

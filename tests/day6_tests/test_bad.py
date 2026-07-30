@@ -1,14 +1,23 @@
+"""Negative-path validation tests for product endpoints."""
+
 import pytest
 
-def _assert_validation_response_shape(data):
+
+def _assert_validation_response_shape(data: dict) -> None:
+    """Assert that validation responses include the FastAPI detail list."""
     assert "detail" in data
     assert isinstance(data["detail"], list)
 
 
-def _assert_error_by_field(errors, field, message_substring):
-    field_errors = [err for err in errors if err["loc"][-1] == field]
+def _assert_error_by_field(
+    errors: list[dict],
+    field: str,
+    message_substring: str,
+) -> None:
+    """Assert that validation errors include an expected field/message match."""
+    field_errors = [error for error in errors if error["loc"][-1] == field]
     assert field_errors, f"No validation error found for field '{field}'"
-    assert any(message_substring in err["msg"].lower() for err in field_errors)
+    assert any(message_substring in error["msg"].lower() for error in field_errors)
 
 
 @pytest.mark.parametrize(
@@ -60,7 +69,13 @@ def _assert_error_by_field(errors, field, message_substring):
     ],
     ids=["missing-unit", "bad-cost", "bad-price", "bad-quantity"],
 )
-def test_bad_product_post_single_error(client, payload, expected_field, expected_message):
+def test_bad_product_post_single_error(
+    client,
+    payload: dict,
+    expected_field: str,
+    expected_message: str,
+) -> None:
+    """Verify each invalid POST payload returns the expected single validation error."""
     response = client.post("/products/", json=payload)
     assert response.status_code == 422
 
@@ -101,7 +116,12 @@ def test_bad_product_post_single_error(client, payload, expected_field, expected
     ],
     ids=["bad-cost-and-quantity", "bad-price-and-quantity"],
 )
-def test_bad_product_post_multi_error(client, payload, expected_errors):
+def test_bad_product_post_multi_error(
+    client,
+    payload: dict,
+    expected_errors: list[tuple[str, str]],
+) -> None:
+    """Verify POST payloads with multiple issues report all expected errors."""
     response = client.post("/products/", json=payload)
     assert response.status_code == 422
 
@@ -111,19 +131,20 @@ def test_bad_product_post_multi_error(client, payload, expected_errors):
     for field, message in expected_errors:
         _assert_error_by_field(data["detail"], field, message)
 
-def test_missing_search_parameter(client):
+
+def test_missing_search_parameter(client) -> None:
+    """Verify product search without name query parameter returns 422."""
     response = client.get("/products/search")
 
     assert response.status_code == 422
 
     data = response.json()
-
-    assert "detail" in data
-    assert isinstance(data["detail"], list)
+    _assert_validation_response_shape(data)
 
     error = data["detail"][0]
     assert error["loc"] == ["query", "name"]
     assert "field required" in error["msg"].lower()
+
 
 @pytest.mark.parametrize(
     "payload, expected_errors",
@@ -192,7 +213,12 @@ def test_missing_search_parameter(client):
         "bad-price-and-quantity",
     ],
 )
-def test_bad_put_validation(client, payload, expected_errors):
+def test_bad_put_validation(
+    client,
+    payload: dict,
+    expected_errors: list[tuple[str, str]],
+) -> None:
+    """Verify full-update payload validation failures return precise PUT errors."""
     response = client.put("/products/1", json=payload)
     assert response.status_code == 422
 
@@ -223,11 +249,12 @@ def test_bad_put_validation(client, payload, expected_errors):
 )
 def test_bad_patch_validation(
     client,
-    payload,
-    expected_present_fields,
-    expected_absent_fields,
-    expected_messages,
-):
+    payload: dict,
+    expected_present_fields: list[str],
+    expected_absent_fields: list[str],
+    expected_messages: list[str],
+) -> None:
+    """Verify partial-update validation behavior for PATCH requests."""
     response = client.patch("/products/1", json=payload)
     assert response.status_code == 422
 
@@ -235,7 +262,7 @@ def test_bad_patch_validation(
     _assert_validation_response_shape(data)
 
     errors = data["detail"]
-    locs = [err["loc"][-1] for err in errors]
+    locs = [error["loc"][-1] for error in errors]
 
     for field in expected_present_fields:
         assert field in locs
@@ -244,4 +271,4 @@ def test_bad_patch_validation(
         assert field not in locs
 
     for message in expected_messages:
-        assert any(message in err["msg"].lower() for err in errors)
+        assert any(message in error["msg"].lower() for error in errors)

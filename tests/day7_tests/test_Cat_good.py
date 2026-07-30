@@ -1,4 +1,8 @@
-def test_create_category(client):
+"""Positive-path tests for category CRUD and nested product views."""
+
+
+def test_create_category(client) -> None:
+    """Verify category creation returns persisted values."""
     payload = {
         "name": "Garden Supplies",
         "description": "Tools and supplies for gardening",
@@ -11,7 +15,8 @@ def test_create_category(client):
     assert body["description"] == payload["description"]
 
 
-def test_get_category_by_id(client):
+def test_get_category_by_id(client) -> None:
+    """Verify an existing category can be retrieved by id."""
     payload = {
         "name": "Indoor Plants",
         "description": "Plants that thrive indoors",
@@ -27,7 +32,8 @@ def test_get_category_by_id(client):
     assert body["description"] == payload["description"]
 
 
-def test_get_categories_returns_list_shape(client, create_category):
+def test_get_categories_returns_list_shape(client, create_category) -> None:
+    """Verify category collection endpoint returns message and list envelope."""
     create_category(name="List Category A", description="First list category")
     create_category(name="List Category B", description="Second list category")
 
@@ -40,10 +46,14 @@ def test_get_categories_returns_list_shape(client, create_category):
 
 
 def test_get_category_products_returns_nested_products(
-    client, create_category, create_product
-):
+    client,
+    create_category,
+    create_product,
+) -> None:
+    """Verify category products endpoint returns nested associated products."""
     category_response = create_category(
-        name="Herbs Nest", description="Fresh herbs for cooking"
+        name="Herbs Nest",
+        description="Fresh herbs for cooking",
     )
     category = category_response.json()
 

@@ -1,9 +1,15 @@
-def test_get_product_by_id_returns_404_for_missing_id(client):
+"""Not-found behavior tests for product endpoints."""
+
+
+def test_get_product_by_id_returns_404_for_missing_id(client) -> None:
+    """Verify GET by id returns 404 when the product does not exist."""
     response = client.get("/products/999999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Product not found"}
 
-def test_put_returns_404_for_missing_product(client):
+
+def test_put_returns_404_for_missing_product(client) -> None:
+    """Verify PUT returns 404 when trying to replace a missing product."""
     payload = {
         "name": "Missing Product",
         "unit": "each",
@@ -16,13 +22,15 @@ def test_put_returns_404_for_missing_product(client):
     assert response.json() == {"detail": "Product not found"}
 
 
-def test_patch_returns_404_for_missing_product(client):
+def test_patch_returns_404_for_missing_product(client) -> None:
+    """Verify PATCH returns 404 when trying to update a missing product."""
     response = client.patch("/products/999999", json={"price_per_unit": 9.0})
     assert response.status_code == 404
     assert response.json() == {"detail": "Product not found"}
 
 
-def test_create_product_returns_404_for_missing_category(client):
+def test_create_product_returns_404_for_missing_category(client) -> None:
+    """Verify POST returns 404 when assigning a non-existent category id."""
     payload = {
         "name": "Orphan Product",
         "unit": "each",

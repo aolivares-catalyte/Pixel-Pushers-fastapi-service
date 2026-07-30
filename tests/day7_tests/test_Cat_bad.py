@@ -1,7 +1,10 @@
+"""Negative-path tests for category-related validation and relationships."""
+
 import pytest
 
 
-def _assert_validation_response_shape(data):
+def _assert_validation_response_shape(data: dict) -> None:
+    """Assert validation responses include a FastAPI detail list."""
     assert "detail" in data
     assert isinstance(data["detail"], list)
 
@@ -13,7 +16,8 @@ def _assert_validation_response_shape(data):
     ],
     ids=["missing-name"],
 )
-def test_bad_category_post_missing_name(client, payload):
+def test_bad_category_post_missing_name(client, payload: dict) -> None:
+    """Verify creating a category without name fails schema validation."""
     response = client.post("/categories/", json=payload)
 
     assert response.status_code == 422
@@ -26,7 +30,8 @@ def test_bad_category_post_missing_name(client, payload):
     assert "field required" in error["msg"].lower()
 
 
-def test_product_put_returns_404_for_missing_category(client, create_product):
+def test_product_put_returns_404_for_missing_category(client, create_product) -> None:
+    """Verify PUT product fails when updating to a non-existent category id."""
     product_response = create_product(name="Put Invalid Category")
     product_id = product_response.json()["id"]
 
@@ -43,7 +48,8 @@ def test_product_put_returns_404_for_missing_category(client, create_product):
     assert response.json() == {"detail": "Category with ID 999999 not found."}
 
 
-def test_product_patch_returns_404_for_missing_category(client, create_product):
+def test_product_patch_returns_404_for_missing_category(client, create_product) -> None:
+    """Verify PATCH product fails when assigning a non-existent category id."""
     product_response = create_product(name="Patch Invalid Category")
     product_id = product_response.json()["id"]
 

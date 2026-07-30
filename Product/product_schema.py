@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+"""Pydantic schemas for product create/read/update operations."""
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 class ProductCreate(BaseModel):
@@ -23,7 +25,8 @@ class ProductCreate(BaseModel):
     category_id: int | None = None
 
     @field_validator("price_per_unit", mode="before")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(cls, value: float, info: ValidationInfo) -> float:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
@@ -47,7 +50,8 @@ class ProductFullUpdate(BaseModel):
     category_id: int | None = None
 
     @field_validator("price_per_unit", mode="before")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(cls, value: float, info: ValidationInfo) -> float:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
@@ -79,9 +83,16 @@ class ProductUpdatePartial(BaseModel):
     category_id: int | None = None
 
     @field_validator("price_per_unit")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(
+        cls,
+        value: float | None,
+        info: ValidationInfo,
+    ) -> float | None:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
+        if value is None:
+            return value
         if cost_per_unit is not None and cost_per_unit > value:
             raise ValueError(
                 "price_per_unit must be greater than or equal to cost_per_unit"
@@ -115,7 +126,9 @@ class ProductRead(BaseModel):
     category_id: int | None = None
 
     @field_validator("price_per_unit")
-    def validate_price_not_loss(cls, value, info):
+    @classmethod
+    def validate_price_not_loss(cls, value: float, info: ValidationInfo) -> float:
+        """Ensure serialized products always have profitable pricing."""
         cost = info.data.get("cost_per_unit")
         if cost is not None and value < cost:
             raise ValueError(

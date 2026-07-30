@@ -1,58 +1,44 @@
-"""
-Main FastAPI application module.
+"""Main FastAPI application entry point.
 
-This file initializes the FastAPI app, mounts the product router under the
-`/products` prefix, and defines several top-level routes:
-
-This module defines the application instance and two routes:
-- ``GET /`` returns a default health-style greeting.
-- ``GET /hello/{name}`` returns a personalized greeting.
-- ``GET /db-check`` performs a simple database connectivity check by
-  returning the number of rows in the ``products`` table.
-
-A database session dependency is also defined here for use in top-level
-endpoints.
+This module wires routers, initializes database metadata, and exposes
+lightweight endpoints used by tests and quick health checks.
 """
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
+
+from Category import category_model
+from Category.category_router import router as category_router
+from Product import product_model
+from Product.product_router import router as product_router
 from database import Base, engine
 from utils import get_db
 
-from Product import product_model
+# Keep model modules imported so SQLAlchemy metadata contains all tables.
+_MODELS_REGISTERED = (product_model, category_model)
 
-from Product.product_router import router as product_router
-
-from Category import category_model
-
-from Category.category_router import router as category_router
-
-# Create the main FastAPI application instance
 app = FastAPI()
 
-# Mount product related routes under /products
 app.include_router(product_router, prefix="/products", tags=["products"])
 app.include_router(category_router, prefix="/categories", tags=["categories"])
 
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
+
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, str]:
     """Return a default greeting message."""
     return {"message": "Hello World"}
 
 
 @app.get("/hello/{name}")
-def say_hello(name: str):
-    """Return a greeting message addressed to the provided name."""
+def say_hello(name: str) -> dict[str, str]:
+    """Return a greeting addressed to the supplied name."""
     return {"message": f"Hello, {name}!"}
 
-@app.get("/db-check")
-def check_database_connection(db: Session = Depends(get_db)):
-    """
-    Check database connectivity by returning the number of rows in
-    the products table.
-    """
-    return {"row_count": db.query(product_model.Product).count()}
 
+@app.get("/db-check")
+def check_database_connection(db: Session = Depends(get_db)) -> dict[str, int]:
+    """Return row count from the products table to verify DB connectivity."""
+    return {"row_count": db.query(product_model.Product).count()}
