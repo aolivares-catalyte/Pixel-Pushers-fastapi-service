@@ -1,7 +1,7 @@
 $kind: http-request
 name: Categories Get Products
 method: GET
-url: 'http://127.0.0.1:8000/categories/1/products'
+url: 'http://127.0.0.1:8000/categories/2/products'
 tests:
   - name: 'Status code is 200'
     script: |-
@@ -22,7 +22,7 @@ tests:
     script: |-
       pm.test("Response id matches requested category id", function () {
         const json = pm.response.json();
-        pm.expect(json.id).to.eql(1);
+        pm.expect(json.id).to.eql(2);
       });
   - name: 'Response time is less than 500ms'
     script: |-

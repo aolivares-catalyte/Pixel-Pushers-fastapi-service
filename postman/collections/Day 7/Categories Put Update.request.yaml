@@ -1,7 +1,7 @@
 $kind: http-request
 name: Categories Put Update
 method: PUT
-url: 'http://127.0.0.1:8000/categories/1'
+url: 'http://127.0.0.1:8000/categories/2'
 body:
   type: json
   content: |-
@@ -39,7 +39,7 @@ tests:
     script: |-
       pm.test("Response id matches updated category id", function () {
         const json = pm.response.json();
-        pm.expect(json.id).to.eql(1);
+        pm.expect(json.id).to.eql(2);
       });
   - name: 'Response time is less than 500ms'
     script: |-
