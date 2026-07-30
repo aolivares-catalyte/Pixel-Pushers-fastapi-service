@@ -1,8 +1,4 @@
-from fastapi.testclient import TestClient
 import pytest
-from main import app
-
-client = TestClient(app)
 
 def _assert_validation_response_shape(data):
     assert "detail" in data
@@ -64,7 +60,7 @@ def _assert_error_by_field(errors, field, message_substring):
     ],
     ids=["missing-unit", "bad-cost", "bad-price", "bad-quantity"],
 )
-def test_bad_product_post_single_error(payload, expected_field, expected_message):
+def test_bad_product_post_single_error(client, payload, expected_field, expected_message):
     response = client.post("/products/", json=payload)
     assert response.status_code == 422
 
@@ -105,7 +101,7 @@ def test_bad_product_post_single_error(payload, expected_field, expected_message
     ],
     ids=["bad-cost-and-quantity", "bad-price-and-quantity"],
 )
-def test_bad_product_post_multi_error(payload, expected_errors):
+def test_bad_product_post_multi_error(client, payload, expected_errors):
     response = client.post("/products/", json=payload)
     assert response.status_code == 422
 
@@ -115,7 +111,7 @@ def test_bad_product_post_multi_error(payload, expected_errors):
     for field, message in expected_errors:
         _assert_error_by_field(data["detail"], field, message)
 
-def test_missing_search_parameter():
+def test_missing_search_parameter(client):
     response = client.get("/products/search")
 
     assert response.status_code == 422
@@ -196,7 +192,7 @@ def test_missing_search_parameter():
         "bad-price-and-quantity",
     ],
 )
-def test_bad_put_validation(payload, expected_errors):
+def test_bad_put_validation(client, payload, expected_errors):
     response = client.put("/products/1", json=payload)
     assert response.status_code == 422
 
@@ -226,6 +222,7 @@ def test_bad_put_validation(payload, expected_errors):
     ids=["bad-price-and-quantity", "bad-cost-and-quantity"],
 )
 def test_bad_patch_validation(
+    client,
     payload,
     expected_present_fields,
     expected_absent_fields,

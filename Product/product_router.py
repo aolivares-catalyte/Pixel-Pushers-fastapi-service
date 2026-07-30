@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from Product.product_model import Product
+from Category.category_model import Category
 from utils import get_db
 
 from Product.product_schema import *
@@ -23,6 +24,15 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     """
     new_product = Product(**product.model_dump())
     db.add(new_product)
+
+    if new_product.category_id is not None:
+        category = db.query(Category).filter(Category.id == new_product.category_id).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {new_product.category_id} not found.",
+            )
+
 
     try:
 
@@ -120,6 +130,13 @@ async def update_product(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
+    if product_update.category_id is not None:
+        category = db.query(Category).filter(Category.id == product_update.category_id).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {product_update.category_id} not found.",
+            )
 
     product.name = product_update.name
     product.unit = product_update.unit
@@ -163,6 +180,14 @@ async def patch_product(
 
     for key, value in product_update.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
+
+    if product_update.category_id is not None:
+        category = db.query(Category).filter(Category.id == product_update.category_id).first()
+        if not category:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Category with ID {product_update.category_id} not found.",
+            )
 
     try:
         ProductRead.model_validate(product)
