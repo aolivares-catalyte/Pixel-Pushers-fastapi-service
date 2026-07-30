@@ -2,6 +2,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Integer
 from Product.product_model import Product
 from database import Base
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from Product.product_model import Product
 
 class Category(Base):
     """
