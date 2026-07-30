@@ -21,6 +21,7 @@ class ProductCreate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_name: str
 
     @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
@@ -44,6 +45,7 @@ class ProductFullUpdate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_name: str
 
     @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
@@ -75,6 +77,7 @@ class ProductUpdatePartial(BaseModel):
     cost_per_unit: float | None = Field(default=None, gt=0)
     price_per_unit: float | None = None
     quantity_in_stock: float | None = Field(default=None, ge=0)
+    category_name: str
 
     @field_validator("price_per_unit")
     def validate_price_per_unit(cls, value, info):
@@ -110,7 +113,7 @@ class ProductRead(BaseModel):
     cost_per_unit: float = Field(gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(ge=0)
-    category: CategoryRead
+    category_name: str
 
     @field_validator("price_per_unit")
     def validate_price_not_loss(cls, value, info):
