@@ -10,9 +10,6 @@ from Product.product_schema import *
 # Create a router instance for product related endpoints
 router = APIRouter()
 
-# In memory list to store products
-products_list = []
-
 
 @router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):

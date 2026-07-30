@@ -1,49 +1,54 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field
 
+from Product.product_schema import ProductRead
 
 class CategoryCreate(BaseModel):
-    """Schema for creating a new category."""
+    """
+    Schema representing a category in the inventory system.
+
+    Fields:
+        name (str): Name of the category.
+        description (str): Description of the category.
+    """
 
     name: str
-
+    description: str = Field(default="No description provided.")
 
 class CategoryRead(BaseModel):
-    """Schema for reading a category."""
+    """
+    Schema representing a category for reading purposes.
 
-    model_config = ConfigDict(from_attributes=True)
+    Fields:
+        id (int): Unique identifier for the category.
+        name (str): Name of the category.
+        description (str): Description of the category.
+    """
 
     id: int
     name: str
+    description: str
 
-
-class ProductReadBase(BaseModel):
+class CategoryListResponse(BaseModel):
     """
-    Base schema for a product returned INSIDE a category.
-    It deliberately omits the category_id and category object to prevent infinite loops.
+    Schema representing a response containing a list of categories.
+
+    Fields:
+        message (str): A message indicating the result of the request.
+        categories (list[CategoryRead]): A list of categories.
     """
 
-    model_config = ConfigDict(from_attributes=True)
+    message: str
+    categories: list[CategoryRead]
+
+class CategoryReadWithProducts(BaseModel):
+    """
+    Schema representing a category along with its associated products.
+
+    Fields:
+        products (list[ProductRead]): A list of products associated with the category.
+    """
 
     id: int
     name: str
-    unit: str
-    cost_per_unit: float = Field(gt=0)
-    price_per_unit: float
-    quantity_in_stock: float = Field(ge=0)
-
-    @field_validator("price_per_unit")
-    def validate_price_not_loss(cls, value, info):
-        cost = info.data.get("cost_per_unit")
-        if cost is not None and value < cost:
-            raise ValueError(
-                "price_per_unit must be greater than or equal to cost_per_unit"
-            )
-        return value
-
-
-class CategoryWithProducts(CategoryRead):
-    """
-    Nested schema for retrieving a category along with all its associated products.
-    """
-
-    products: list[ProductReadBase]
+    description: str
+    products: list[ProductRead] = []

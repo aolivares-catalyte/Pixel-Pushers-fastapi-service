@@ -23,11 +23,16 @@ from Product import product_model
 
 from Product.product_router import router as product_router
 
+from Category import category_model
+
+from Category.category_router import router as category_router
+
 # Create the main FastAPI application instance
 app = FastAPI()
 
 # Mount product related routes under /products
 app.include_router(product_router, prefix="/products", tags=["products"])
+app.include_router(category_router, prefix="/categories", tags=["categories"])
 
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
