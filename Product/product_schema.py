@@ -122,7 +122,7 @@ class ProductRead(BaseModel):
         return value
 
 
-class ProductReadWithCategory(ProductReadBase):
+class ProductReadWithCategory(ProductRead):
     """
     Nested schema for when we query a product directly.
     It includes the full CategoryRead object (showing the name, not just the ID).
@@ -160,4 +160,4 @@ class CategoryWithProducts(CategoryRead):
     Nested schema for retrieving a category along with all its associated products.
     """
 
-    products: list[ProductReadBase]
+    products: list[ProductRead]
