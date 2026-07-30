@@ -30,8 +30,6 @@
     - Purpose: Update only the fields provided in the request body.
 - DELETE /products/{id}
     - Purpose: Soft delete a product (mark as deleted; not permanently removed).
-- DELETE /categories/{id}
-    - Purpose: Delete a category only when it has no products assigned to it.
 
 ### Request Body Shape
 
@@ -114,7 +112,6 @@ quantity_in_stock >= 0
 - `GET /categories/{id}` returns a category response with just the category fields.
 - `GET /categories/{id}/products` returns all products whose `category_id` matches the requested category.
 - A product response includes the `category_id` field so clients can link the product to its category without merging the two resources.
-- Categories cannot be deleted if they still contain products.
 
 ### Nested Schema Guidance
 
@@ -309,10 +306,6 @@ quantity_in_stock >= 0
     - Status: **204 No Content**
     - Body: None
 
-- **DELETE /categories/{id}**
-    - Status: **204 No Content**
-    - Body: None
-
 - **PATCH /products/{id}**
     - Status: **200 OK**
     - Body: **ProductRead**
@@ -359,23 +352,13 @@ quantity_in_stock >= 0
     }
     ```
 
-- **Endpoint**: **GET, PUT, PATCH, DELETE /categories/{id}**
+- **Endpoint**: **GET /categories/{id}**
 - When the category does not exist:
     - Status: **404 Not Found**
     - Body:
     ```json
     {
         "detail": "Category not found"
-    }
-    ```
-
-- **Endpoint**: **DELETE /categories/{id}**
-- When the category still has products assigned to it:
-    - Status: **409 Conflict**
-    - Body:
-    ```json
-    {
-        "detail": "Cannot delete category with existing products"
     }
     ```
 
