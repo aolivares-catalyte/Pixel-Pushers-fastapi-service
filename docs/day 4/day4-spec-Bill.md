@@ -1,4 +1,4 @@
-# Day 4 (and 5) Technical Requirements Spec
+# Day 4, 5, and 7 Technical Requirements Spec
 
 ## API Contract Summary
 
@@ -6,18 +6,24 @@
 
 - POST /products
     - Purpose: Persist a new product.
+- POST /categories
+    - Purpose: Persist a new category.
 - GET /products
     - Purpose: View the full catalog.
 - GET /products/{id}
     - Purpose: Look up one specific product by identifier.
 - GET /products/search?name={name}&unit={unit}
     - Purpose: Search for products by name and optional unit.
+- GET /categories/{id}
+    - Purpose: View a category together with all products assigned to it.
 - PUT /products/{id}
     - Purpose: Fully update an existing product with full replacement.
 - PATCH /products/{id}
     - Purpose: Update only the fields provided in the request body.
 - DELETE /products/{id}
-    - Purpose: Permanently remove a product from the catalog.
+    - Purpose: Soft delete a product (mark as deleted; not permanently removed).
+- DELETE /categories/{id}
+    - Purpose: Delete a category only when it has no products assigned to it.
 
 ### Request Body Shape
 
@@ -29,7 +35,15 @@
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category_id": 2
+    }
+    ```
+- **POST /categories** request body (**CategoryCreate**):
+    - **All fields required.**
+    ```json
+    {
+        "name": "Tools"
     }
     ```
 - **PUT /products/{id}** request body (**ProductFullUpdate**):
@@ -67,6 +81,22 @@ quantity_in_stock >= 0
 - **PATCH**: only provided fields validated
 - **Invalid input** returns **422 Unprocessable Entity**
 
+### Relationship Model and Constraints
+
+- A category is the parent resource and contains an `id` and `name`.
+- A product is the child resource and contains a `category_id` foreign key that points to Category.id.
+- The foreign key is owned by Product because the child row stores the parent reference.
+- A product cannot exist without a valid `category_id`; it must always be attached to a real category.
+- `GET /categories/{id}` returns a category response that includes a nested `products` array.
+- A product response includes category information (for example, the category's `id` and `name`) instead of only an opaque internal id.
+- Categories cannot be deleted if they still contain products.
+
+### Nested Schema Guidance
+
+- Use `ProductRead` for standalone product responses and include category details in that payload.
+- Use `CategoryWithProducts` for `GET /categories/{id}` and include a nested `products` array.
+- If needed, a smaller `ProductInCategory` schema can be used for products shown inside a category response, but the API contract must remain explicit.
+
 ### Successful Response Shapes
 
 - **POST /products**
@@ -79,7 +109,61 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category": {
+            "id": 2,
+            "name": "Tools"
+        }
+    }
+    ```
+
+- **POST /categories**
+    - Status: **201 Created**
+    - Body:
+    ```json
+    {
+        "id": 2,
+        "name": "Tools"
+    }
+    ```
+
+- **GET /categories/{id}**
+    - Status: **200 OK**
+    - Body:
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "products": [
+            {
+                "id": 101,
+                "name": "Basil Plant",
+                "unit": "each",
+                "cost_per_unit": 1.25,
+                "price_per_unit": 2.5,
+                "quantity_in_stock": 40
+            }
+        ]
+    }
+    ```
+
+- **GET /categories/{id}**
+    - Status: **200 OK**
+    - Body:
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "products": [
+            {
+                "id": 101,
+                "name": "Basil Plant",
+                "unit": "each",
+                "cost_per_unit": 1.25,
+                "price_per_unit": 2.5,
+                "quantity_in_stock": 40
+            }
+        ]
     }
     ```
 
@@ -120,7 +204,11 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category": {
+            "id": 2,
+            "name": "Tools"
+        }
     }
     ```
 
@@ -168,6 +256,10 @@ quantity_in_stock >= 0
     - Status: **204 No Content**
     - Body: None
 
+- **DELETE /categories/{id}**
+    - Status: **204 No Content**
+    - Body: None
+
 - **PATCH /products/{id}**
     - Status: **200 OK**
     - Body: **ProductRead**
@@ -185,7 +277,7 @@ quantity_in_stock >= 0
 ### Failure Responses
 
 - **Endpoint**: **GET, PUT, DELETE, PATCH /products/{id}**
-- When product does not exist:
+- When product does not exist **or is soft-deleted**:
     - Status: **404 Not Found**
     - Body:
     ```json
@@ -193,6 +285,7 @@ quantity_in_stock >= 0
         "detail": "Product not found"
     }
     ```
+    - Note: Soft-deleted products behave as if they don't exist; clients cannot distinguish between a hard-deleted and soft-deleted product
 
 - **Endpoint**: **PUT, PATCH /products/{id}**
 - When product body is invalid:
@@ -203,14 +296,32 @@ quantity_in_stock >= 0
 - When product body is invalid:
     - Status: **422 Unprocessable Entity**
     - Body: Pydantic validation error
+- When the product references a category that does not exist:
+    - Status: **404 Not Found**
+    - Body:
+    ```json
+    {
+        "detail": "Category not found"
+    }
+    ```
 
-- **Endpoint**: **POST, PUT, PATCH /products**, **GET /products**, **GET /products/{id}**, **GET /products/search**
+- **Endpoint**: **DELETE /categories/{id}**
+- When the category still has products assigned to it:
+    - Status: **409 Conflict**
+    - Body:
+    ```json
+    {
+        "detail": "Cannot delete category with existing products"
+    }
+    ```
+
+- **Endpoint**: **POST, PUT, PATCH, DELETE /products**, **GET /products**, **GET /products/{id}**, **GET /products/search**
 - When a database operation fails (commit, query, etc.):
     - Status: **500 Internal Server Error**
     - Body:
     ```json
     {
-        "detail": "Failed to [create/update/retrieve] product in the database."
+        "detail": "Failed to [create/update/delete/retrieve] product in the database."
     }
     ```
     - Error handling: Exception caught, transaction rolled back, error message returned
@@ -230,10 +341,12 @@ quantity_in_stock >= 0
 - **PATCH**: only provided fields validated.
 - Invalid input is rejected with **422** before route logic proceeds.
 
-**SQLAlchemy model (Product)**
+**SQLAlchemy model (Product and Category)**
 
-- Maps Python objects to the products table columns.
+- Maps Python objects to the products and categories tables.
 - Represents persisted database records.
+- The Product model includes a `category_id` foreign key to Category.id and a `category` relationship.
+- The Category model includes a `products` relationship back to Product.
 - Does not enforce business validation rules — those belong to **Pydantic**.
 - Raises database-level errors only for structural issues (e.g., missing row, constraint violations).
 
@@ -241,6 +354,11 @@ quantity_in_stock >= 0
 
 - Receive already-validated request data.
 - **All database operations (commit, query, refresh) are wrapped in try-except blocks**.
+- **Query filtering**: All queries automatically filter out soft-deleted products (`WHERE is_deleted = False`):
+    - GET /products → returns only active products
+    - GET /products/{id} → returns 404 if product is soft-deleted
+    - GET /products/search → search results exclude soft-deleted products
+- **DELETE /products/{id}**: Updates the product by setting `is_deleted = True` instead of removing the row
 - **Error handling pattern**:
     ```
     try:
@@ -253,11 +371,27 @@ quantity_in_stock >= 0
     ```
 - Perform lookup/update/delete operations using **SQLAlchemy**.
 - Owns not-found logic for **GET/PUT/PATCH/DELETE**:
-    - Missing product → **404 Not Found**
+    - Missing product or soft-deleted product → **404 Not Found**
+    - Missing category for product creation → **404 Not Found**
+    - Deleting a category that still has products → **409 Conflict**
 - **PUT**: replace all fields.
 - **PATCH**: update only provided fields.
-- **DELETE**: remove product; return **204** on success.
+- **DELETE**: set `is_deleted = True`; return **204** on success.
 - Handle commit/refresh on writes and return response payloads.
+
+### Soft Delete Implementation
+
+**Soft Delete Field**:
+- **Field name**: `is_deleted` (boolean)
+- **Default value**: `False` (product is active)
+- **Set to `True`** when **DELETE /products/{id}** is called
+- **Never returned** in any Pydantic schema (**ProductRead**, **ProductCreate**, etc.)
+- All queries (GET, GET by ID, search) automatically filter out soft-deleted products (`is_deleted = False`)
+
+**Behavior**:
+- Deleted products remain in the database but are hidden from all responses
+- A soft-deleted product returns **404 Not Found** just like a non-existent product
+- This preserves data integrity and allows for recovery if needed
 
 ### Returned Fields Decision and Rationale
 
@@ -268,10 +402,13 @@ quantity_in_stock >= 0
     - `cost_per_unit`
     - `price_per_unit`
     - `quantity_in_stock`
+- **NOT returned** (hidden from API):
+    - `is_deleted` (internal implementation detail)
 - Why these fields:
     - They are the business fields needed by clients for catalog display, stock checks, and margin awareness.
     - `id` is required for stable single-item lookup and client-side linking.
     - Returning only schema-defined fields prevents ORM/session internals from leaking and keeps the API contract predictable.
+    - The `is_deleted` field is an internal implementation detail; clients never see it.
 
 ## Technical Specs
 
@@ -329,6 +466,7 @@ When a client performs a **GET /products** request, the service queries the Post
     - Return **200 OK**.
     - Return `products` as an empty list.
     - Return `message` as `"No products found"`.
+    - Soft-deleted products are automatically excluded (not counted as products).
 
 ### 3. Get Product by ID
 
@@ -386,17 +524,22 @@ When a client performs a **GET /products/search** request with query parameters,
     - Return **200 OK**.
     - Return `results` as an empty list.
     - Return `message` as `"No matching products found"`.
+    - Soft-deleted products are automatically excluded from search results.
 
 ### 5. Response Model Enforcement
 
-All product endpoints must return **Pydantic response models** rather than raw **SQLAlchemy objects**.
+All product and category endpoints must return **Pydantic response models** rather than raw **SQLAlchemy objects**.
 
 - **ProductRead** is the response schema for returning one product object.
+- **CategoryRead** is the response schema for returning one category object.
+- **CategoryWithProducts** is the response schema for **GET /categories/{id}** and includes a nested `products` array.
 - **Endpoint mapping**:
     - **POST /products** → **ProductRead**
+    - **POST /categories** → **CategoryRead**
     - **GET /products/{id}** → **ProductRead**
     - **GET /products** → **ProductListResponse** (contains message and list of **ProductRead**)
     - **GET /products/search** → object containing message and list of **ProductRead**
+    - **GET /categories/{id}** → **CategoryWithProducts**
 - **SQLAlchemy** objects must be serialized through **Pydantic** before returning.
 
 ### 6. Database Session Dependency
@@ -416,25 +559,28 @@ All product endpoints must use the `get_db` **FastAPI dependency** to obtain a d
 
 ### 7. Input Validation
 
-All incoming product requests (create and update) must be validated using their respective **Pydantic schemas**. Invalid data must return **422 Unprocessable Entity** from **FastAPI/Pydantic**.
+All incoming product and category requests must be validated using their respective **Pydantic schemas**. Invalid data must return **422 Unprocessable Entity** from **FastAPI/Pydantic**.
 
 - **Validation by endpoint**:
-    - **POST /products**: Validate with **ProductCreate** (all fields required).
+    - **POST /products**: Validate with **ProductCreate** (all fields required, including a valid `category_id`).
+    - **POST /categories**: Validate with **CategoryCreate** (all fields required).
     - **PUT /products/{id}**: Validate with **ProductFullUpdate** (all fields required) - to be defined for Day 5.
     - **PATCH /products/{id}**: Validate with **ProductUpdatePartial** (fields are optional) - to be defined for Day 5.
     - Pydantic enforces field types and constraints.
 - **Error behavior**:
     - **FastAPI** automatically returns **422** with validation details.
 - **Conversion**:
-    - Validated schema is converted to **SQLAlchemy Product** before persistence.
+    - Validated schema is converted to **SQLAlchemy Product** or **SQLAlchemy Category** before persistence.
 
 ### 8. Consistent API Shape
 
-All product endpoints must follow a **predictable response contract**.
+All product and category endpoints must follow a **predictable response contract**.
 
 - **Single-resource endpoints** return one object:
     - **POST /products** → **ProductRead**
+    - **POST /categories** → **CategoryRead**
     - **GET /products/{id}** → **ProductRead**
+    - **GET /categories/{id}** → **CategoryWithProducts**
 - **List endpoints** return an object with a message and a list:
     - **GET /products** → **ProductListResponse** (contains message and **list of ProductRead**)
     - **GET /products/search** → `{ message, results: [list of ProductRead] }`
@@ -448,7 +594,7 @@ All product endpoints must follow a **predictable response contract**.
 The API must never return raw **SQLAlchemy** model instances, session-bound objects, or ORM-specific fields.
 
 - **SQLAlchemy internals** such as `_sa_instance_state` must never appear in response payloads.
-- Use **ProductRead** for product serialization.
+- Use **ProductRead** and **CategoryRead** for serialization.
 - **Ensures**:
     - Clean JSON
     - Stable API contract
@@ -484,7 +630,7 @@ As a garden center manager, I want to update a product's details (price, cost, s
 
 2. Remove a Discontinued Product
 
-As a garden center manager, I want to permanently remove a product from the catalog, so that discontinued items no longer show up for staff or customers.
+As a garden center manager, I want to soft delete a product from the catalog, so that discontinued items no longer show up for staff or customers, but the data is preserved for historical and recovery purposes.
 
 3. Clear Failure When Updating or Deleting Something That Doesn't Exist
 
@@ -497,8 +643,4 @@ As the garden center's technology partner, I want obviously invalid input (like 
 5. A Predictable, Documented Contract for Every Outcome
 
 As the garden center's technology partner, I want every endpoint's possible responses, success and failure, documented and verifiable, so that anyone integrating with this API knows exactly what to expect in every case.
-
-### Comments-Allen Day 4
-Very nice job! I like how specific each part was and I was left with no questions on how to complete the project.
-
 
