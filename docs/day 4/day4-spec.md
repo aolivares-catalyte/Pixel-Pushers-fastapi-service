@@ -1,4 +1,4 @@
-# Day 4 (and 5) Technical Requirements Spec
+# Day 4, 5, and 7 Technical Requirements Spec
 
 ## API Contract Summary
 
@@ -6,12 +6,24 @@
 
 - POST /products
     - Purpose: Persist a new product.
+- POST /categories
+    - Purpose: Persist a new category.
 - GET /products
     - Purpose: View the full catalog.
 - GET /products/{id}
     - Purpose: Look up one specific product by identifier.
 - GET /products/search?name={name}&unit={unit}
     - Purpose: Search for products by name and optional unit.
+- GET /categories
+    - Purpose: View all categories.
+- GET /categories/{id}
+    - Purpose: View one category by identifier.
+- GET /categories/{id}/products
+    - Purpose: View all products assigned to a category.
+- PUT /categories/{id}
+    - Purpose: Fully update a category.
+- PATCH /categories/{id}
+    - Purpose: Partially update a category.
 - PUT /products/{id}
     - Purpose: Fully update an existing product with full replacement.
 - PATCH /products/{id}
@@ -29,7 +41,31 @@
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category_id": 2
+    }
+    ```
+- **POST /categories** request body (**CategoryCreate**):
+    - **All fields required.**
+    ```json
+    {
+        "name": "Tools",
+        "description": "Garden hand tools"
+    }
+    ```
+- **PUT /categories/{id}** request body (**CategoryUpdate**):
+    - **Full replacement. All fields required.**
+    ```json
+    {
+        "name": "Tools",
+        "description": "Garden hand tools"
+    }
+    ```
+- **PATCH /categories/{id}** request body (**CategoryUpdatePartial**):
+    - **Only provided fields are updated. All fields optional.**
+    ```json
+    {
+        "description": "Indoor and outdoor garden tools"
     }
     ```
 - **PUT /products/{id}** request body (**ProductFullUpdate**):
@@ -67,6 +103,23 @@ quantity_in_stock >= 0
 - **PATCH**: only provided fields validated
 - **Invalid input** returns **422 Unprocessable Entity**
 
+### Relationship Model and Constraints
+
+- A category is the parent resource and contains an `id`, `name`, and `description`.
+- A product is the child resource and contains a `category_id` foreign key that points to Category.id.
+- The foreign key is owned by Product because the child row stores the parent reference.
+- A product cannot exist without a valid `category_id`; it must always be attached to a real category.
+- `GET /categories/{id}` returns a category response with just the category fields.
+- `GET /categories/{id}/products` returns all products whose `category_id` matches the requested category.
+- A product response includes the `category_id` field so clients can link the product to its category without merging the two resources.
+
+### Nested Schema Guidance
+
+- Use `ProductRead` for standalone product responses and include the `category_id` field.
+- Use `CategoryRead` for `GET /categories/{id}` responses.
+- Use the existing product list shape for `GET /categories/{id}/products` so the endpoint returns a collection of `ProductRead` objects.
+- The category resource remains separate from the product resource; it is linked through `category_id` rather than merged into the product payload.
+
 ### Successful Response Shapes
 
 - **POST /products**
@@ -79,7 +132,88 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category_id": 2
+    }
+    ```
+
+- **POST /categories**
+    - Status: **201 Created**
+    - Body:
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "description": "Garden hand tools"
+    }
+    ```
+
+- **GET /categories**
+    - Status: **200 OK**
+    - Body:
+    ```json
+    {
+        "message": "Categories retrieved successfully",
+        "categories": [
+            {
+                "id": 2,
+                "name": "Tools",
+                "description": "Garden hand tools"
+            }
+        ]
+    }
+    ```
+
+- **GET /categories/{id}**
+    - Status: **200 OK**
+    - Body:
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "description": "Garden hand tools"
+    }
+    ```
+
+- **PUT /categories/{id}**
+    - Status: **200 OK**
+    - Body: **CategoryRead**
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "description": "Garden hand tools"
+    }
+    ```
+
+- **PATCH /categories/{id}**
+    - Status: **200 OK**
+    - Body: **CategoryRead**
+    ```json
+    {
+        "id": 2,
+        "name": "Tools",
+        "description": "Indoor and outdoor garden tools"
+    }
+    ```
+
+- **GET /categories/{id}/products**
+    - Status: **200 OK**
+    - Body:
+    ```json
+    {
+        "message": "Products retrieved successfully",
+        "products": [
+            {
+                "id": 101,
+                "name": "Basil Plant",
+                "unit": "each",
+                "cost_per_unit": 1.25,
+                "price_per_unit": 2.5,
+                "quantity_in_stock": 40,
+                "category_id": 2
+            }
+        ]
     }
     ```
 
@@ -97,7 +231,8 @@ quantity_in_stock >= 0
                 "unit": "each",
                 "cost_per_unit": 1.25,
                 "price_per_unit": 2.5,
-                "quantity_in_stock": 40
+                "quantity_in_stock": 40,
+                "category_id": 2
             }
         ]
     }
@@ -120,7 +255,8 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category_id": 2
     }
     ```
 
@@ -137,7 +273,8 @@ quantity_in_stock >= 0
                 "unit": "each",
                 "cost_per_unit": 1.25,
                 "price_per_unit": 2.5,
-                "quantity_in_stock": 40
+                "quantity_in_stock": 40,
+                "category_id": 2
             }
         ]
     }
@@ -160,7 +297,8 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.50,
-        "quantity_in_stock": 40
+        "quantity_in_stock": 40,
+        "category_id": 2
     }
     ```
 
@@ -178,7 +316,8 @@ quantity_in_stock >= 0
         "unit": "each",
         "cost_per_unit": 1.25,
         "price_per_unit": 2.5,
-        "quantity_in_stock": 55
+        "quantity_in_stock": 55,
+        "category_id": 2
     }
     ```
 
@@ -204,6 +343,24 @@ quantity_in_stock >= 0
 - When product body is invalid:
     - Status: **422 Unprocessable Entity**
     - Body: Pydantic validation error
+- When the product references a category that does not exist:
+    - Status: **404 Not Found**
+    - Body:
+    ```json
+    {
+        "detail": "Category not found"
+    }
+    ```
+
+- **Endpoint**: **GET /categories/{id}**
+- When the category does not exist:
+    - Status: **404 Not Found**
+    - Body:
+    ```json
+    {
+        "detail": "Category not found"
+    }
+    ```
 
 - **Endpoint**: **POST, PUT, PATCH, DELETE /products**, **GET /products**, **GET /products/{id}**, **GET /products/search**
 - When a database operation fails (commit, query, etc.):
@@ -231,10 +388,12 @@ quantity_in_stock >= 0
 - **PATCH**: only provided fields validated.
 - Invalid input is rejected with **422** before route logic proceeds.
 
-**SQLAlchemy model (Product)**
+**SQLAlchemy model (Product and Category)**
 
-- Maps Python objects to the products table columns.
+- Maps Python objects to the products and categories tables.
 - Represents persisted database records.
+- The Product model includes a `category_id` foreign key to Category.id and a `category` relationship.
+- The Category model includes a `products` relationship back to Product.
 - Does not enforce business validation rules — those belong to **Pydantic**.
 - Raises database-level errors only for structural issues (e.g., missing row, constraint violations).
 
@@ -260,6 +419,8 @@ quantity_in_stock >= 0
 - Perform lookup/update/delete operations using **SQLAlchemy**.
 - Owns not-found logic for **GET/PUT/PATCH/DELETE**:
     - Missing product or soft-deleted product → **404 Not Found**
+    - Missing category for product creation → **404 Not Found**
+    - Deleting a category that still has products → **409 Conflict**
 - **PUT**: replace all fields.
 - **PATCH**: update only provided fields.
 - **DELETE**: set `is_deleted = True`; return **204** on success.
@@ -288,6 +449,7 @@ quantity_in_stock >= 0
     - `cost_per_unit`
     - `price_per_unit`
     - `quantity_in_stock`
+    - `category_id`
 - **NOT returned** (hidden from API):
     - `is_deleted` (internal implementation detail)
 - Why these fields:
@@ -414,14 +576,18 @@ When a client performs a **GET /products/search** request with query parameters,
 
 ### 5. Response Model Enforcement
 
-All product endpoints must return **Pydantic response models** rather than raw **SQLAlchemy objects**.
+All product and category endpoints must return **Pydantic response models** rather than raw **SQLAlchemy objects**.
 
-- **ProductRead** is the response schema for returning one product object.
+- **ProductRead** is the response schema for returning one product object and includes the `category_id` field.
+- **CategoryRead** is the response schema for returning one category object and includes `id`, `name`, and `description`.
 - **Endpoint mapping**:
     - **POST /products** → **ProductRead**
+    - **POST /categories** → **CategoryRead**
     - **GET /products/{id}** → **ProductRead**
     - **GET /products** → **ProductListResponse** (contains message and list of **ProductRead**)
     - **GET /products/search** → object containing message and list of **ProductRead**
+    - **GET /categories/{id}** → **CategoryRead**
+    - **GET /categories/{id}/products** → **ProductListResponse**
 - **SQLAlchemy** objects must be serialized through **Pydantic** before returning.
 
 ### 6. Database Session Dependency
@@ -441,28 +607,36 @@ All product endpoints must use the `get_db` **FastAPI dependency** to obtain a d
 
 ### 7. Input Validation
 
-All incoming product requests (create and update) must be validated using their respective **Pydantic schemas**. Invalid data must return **422 Unprocessable Entity** from **FastAPI/Pydantic**.
+All incoming product and category requests must be validated using their respective **Pydantic schemas**. Invalid data must return **422 Unprocessable Entity** from **FastAPI/Pydantic**.
 
 - **Validation by endpoint**:
-    - **POST /products**: Validate with **ProductCreate** (all fields required).
+    - **POST /products**: Validate with **ProductCreate** (all fields required, including a valid `category_id`).
+    - **POST /categories**: Validate with **CategoryCreate** (all fields required).
+    - **PUT /categories/{id}**: Validate with **CategoryUpdate** (all fields required).
+    - **PATCH /categories/{id}**: Validate with **CategoryUpdatePartial** (fields are optional).
     - **PUT /products/{id}**: Validate with **ProductFullUpdate** (all fields required) - to be defined for Day 5.
     - **PATCH /products/{id}**: Validate with **ProductUpdatePartial** (fields are optional) - to be defined for Day 5.
     - Pydantic enforces field types and constraints.
 - **Error behavior**:
     - **FastAPI** automatically returns **422** with validation details.
 - **Conversion**:
-    - Validated schema is converted to **SQLAlchemy Product** before persistence.
+    - Validated schema is converted to **SQLAlchemy Product** or **SQLAlchemy Category** before persistence.
 
 ### 8. Consistent API Shape
 
-All product endpoints must follow a **predictable response contract**.
+All product and category endpoints must follow a **predictable response contract**.
 
 - **Single-resource endpoints** return one object:
     - **POST /products** → **ProductRead**
+    - **POST /categories** → **CategoryRead**
     - **GET /products/{id}** → **ProductRead**
+    - **GET /categories/{id}** → **CategoryRead**
+    - **PUT /categories/{id}** → **CategoryRead**
+    - **PATCH /categories/{id}** → **CategoryRead**
 - **List endpoints** return an object with a message and a list:
     - **GET /products** → **ProductListResponse** (contains message and **list of ProductRead**)
     - **GET /products/search** → `{ message, results: [list of ProductRead] }`
+    - **GET /categories/{id}/products** → **ProductListResponse** (contains message and **list of ProductRead**)
 - **Empty list responses** are explicit and informative:
     - `products: []` with message `"No products found"`
     - `results: []` with message `"No matching products found"`
@@ -473,7 +647,7 @@ All product endpoints must follow a **predictable response contract**.
 The API must never return raw **SQLAlchemy** model instances, session-bound objects, or ORM-specific fields.
 
 - **SQLAlchemy internals** such as `_sa_instance_state` must never appear in response payloads.
-- Use **ProductRead** for product serialization.
+- Use **ProductRead** and **CategoryRead** for serialization.
 - **Ensures**:
     - Clean JSON
     - Stable API contract
@@ -522,3 +696,4 @@ As the garden center's technology partner, I want obviously invalid input (like 
 5. A Predictable, Documented Contract for Every Outcome
 
 As the garden center's technology partner, I want every endpoint's possible responses, success and failure, documented and verifiable, so that anyone integrating with this API knows exactly what to expect in every case.
+
