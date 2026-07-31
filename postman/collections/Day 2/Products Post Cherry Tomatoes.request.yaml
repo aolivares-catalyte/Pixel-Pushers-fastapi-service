@@ -10,5 +10,18 @@ body:
       "unit": "lb",
       "cost_per_unit": 1.10,
       "price_per_unit": 3.49,
-      "quantity_in_stock": 52
+      "quantity_in_stock": 52,
+      "category_id": 1
     }
+tests:
+  - name: 'Status code is 201'
+    script: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+  - name: 'Save product id for follow-up requests'
+    script: |-
+      pm.test("Save product id for follow-up requests", function () {
+        const json = pm.response.json();
+        pm.collectionVariables.set("product_id", String(json.id));
+      });

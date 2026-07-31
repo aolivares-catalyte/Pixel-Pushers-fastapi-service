@@ -1,0 +1,29 @@
+$kind: http-request
+name: Categories Get by ID
+method: GET
+url: 'http://127.0.0.1:8000/categories/1'
+tests:
+  - name: 'Status code is 200'
+    script: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+  - name: 'Response has id, name, and description fields'
+    script: |-
+      pm.test("Response has id, name, and description fields", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json).to.have.property("name");
+        pm.expect(json).to.have.property("description");
+      });
+  - name: 'Response id matches requested id'
+    script: |-
+      pm.test("Response id matches requested id", function () {
+        const json = pm.response.json();
+        pm.expect(json.id).to.eql(1);
+      });
+  - name: 'Response time is less than 500ms'
+    script: |-
+      pm.test("Response time is less than 500ms", function () {
+        pm.expect(pm.response.responseTime).to.be.below(500);
+      });

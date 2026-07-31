@@ -1,0 +1,42 @@
+$kind: http-request
+name: Categories Post Flowers
+method: POST
+url: 'http://127.0.0.1:8000/categories/'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Flowers",
+      "description": "Ornamental flowering plants"
+    }
+tests:
+  - name: 'Status code is 201'
+    script: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+  - name: 'Response has id, name, and description fields'
+    script: |-
+      pm.test("Response has id, name, and description fields", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json).to.have.property("name");
+        pm.expect(json).to.have.property("description");
+      });
+  - name: 'Response name matches posted name'
+    script: |-
+      pm.test("Response name matches posted name", function () {
+        const json = pm.response.json();
+        pm.expect(json.name).to.eql("Flowers");
+      });
+  - name: 'Response description matches posted description'
+    script: |-
+      pm.test("Response description matches posted description", function () {
+        const json = pm.response.json();
+        pm.expect(json.description).to.eql("Ornamental flowering plants");
+      });
+  - name: 'Response time is less than 500ms'
+    script: |-
+      pm.test("Response time is less than 500ms", function () {
+        pm.expect(pm.response.responseTime).to.be.below(500);
+      });

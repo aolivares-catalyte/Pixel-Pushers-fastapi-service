@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+"""Pydantic schemas for product create/read/update operations."""
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 class ProductCreate(BaseModel):
@@ -20,9 +22,11 @@ class ProductCreate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_id: int | None = None
 
     @field_validator("price_per_unit", mode="before")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(cls, value: float, info: ValidationInfo) -> float:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
@@ -43,9 +47,11 @@ class ProductFullUpdate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_id: int | None = None
 
     @field_validator("price_per_unit", mode="before")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(cls, value: float, info: ValidationInfo) -> float:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
         if cost_per_unit is not None and cost_per_unit > value:
@@ -53,6 +59,7 @@ class ProductFullUpdate(BaseModel):
                 "price_per_unit must be greater than or equal to cost_per_unit"
             )
         return value
+
 
 class ProductUpdatePartial(BaseModel):
     """
@@ -67,18 +74,29 @@ class ProductUpdatePartial(BaseModel):
         quantity_in_stock (Optional[float]): Quantity of the product currently in stock.
                                               Must be greater than or equal to 0.
     """
+
     name: str | None = None
     unit: str | None = None
     cost_per_unit: float | None = Field(default=None, gt=0)
     price_per_unit: float | None = None
     quantity_in_stock: float | None = Field(default=None, ge=0)
+    category_id: int | None = None
 
     @field_validator("price_per_unit")
-    def validate_price_per_unit(cls, value, info):
+    @classmethod
+    def validate_price_per_unit(
+        cls,
+        value: float | None,
+        info: ValidationInfo,
+    ) -> float | None:
         """Validate that the product is not being sold at a loss."""
         cost_per_unit = info.data.get("cost_per_unit")
+        if value is None:
+            return value
         if cost_per_unit is not None and cost_per_unit > value:
-            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
         return value
 
 
@@ -96,6 +114,7 @@ class ProductRead(BaseModel):
         quantity_in_stock (float): Quantity of the product currently in stock.
                                     Must be greater than or equal to 0.
     """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -104,13 +123,19 @@ class ProductRead(BaseModel):
     cost_per_unit: float = Field(gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(ge=0)
+    category_id: int | None = None
 
     @field_validator("price_per_unit")
-    def validate_price_not_loss(cls, value, info):
+    @classmethod
+    def validate_price_not_loss(cls, value: float, info: ValidationInfo) -> float:
+        """Ensure serialized products always have profitable pricing."""
         cost = info.data.get("cost_per_unit")
         if cost is not None and value < cost:
-            raise ValueError("price_per_unit must be greater than or equal to cost_per_unit")
+            raise ValueError(
+                "price_per_unit must be greater than or equal to cost_per_unit"
+            )
         return value
+
 
 class ProductListResponse(BaseModel):
     """

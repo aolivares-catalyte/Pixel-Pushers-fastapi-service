@@ -6,10 +6,12 @@ base class used throughout the application. It also loads environment variable
 and applies the create/drop strategy to synchronize the database schema with
 the ORM models.
 """
+
 import os
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy import create_engine 
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,8 +23,9 @@ if DATABASE_URL is None:
 
 # Create SQLAlchemy engine and session factory
 engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+session_local = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
+
+# pylint: disable=too-few-public-methods
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
-    pass

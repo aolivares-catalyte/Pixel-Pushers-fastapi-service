@@ -1,0 +1,26 @@
+$kind: http-request
+name: Categories Get All
+method: GET
+url: http://127.0.0.1:8000/categories/
+tests:
+  - name: 'Status code is 200'
+    script: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+  - name: 'Response has message and categories fields'
+    script: |-
+      pm.test("Response has message and categories fields", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("message");
+        pm.expect(json).to.have.property("categories");
+        pm.expect(json.categories).to.be.an("array");
+      });
+  - name: 'Response time is less than 500ms'
+    script: |-
+      pm.test("Response time is less than 500ms", function () {
+        pm.expect(pm.response.responseTime).to.be.below(500);
+      });
+body:
+  type: json
+  content: ""

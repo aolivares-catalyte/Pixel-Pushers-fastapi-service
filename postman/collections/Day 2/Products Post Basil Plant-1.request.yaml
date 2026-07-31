@@ -1,7 +1,7 @@
 $kind: http-request
 name: Products Post Basil Plant
+url: http://127.0.0.1:8000/products/
 method: POST
-url: 'http://127.0.0.1:8000/products/'
 body:
   type: json
   content: |-
@@ -10,5 +10,7 @@ body:
       "unit": "each",
       "cost_per_unit": 1.75,
       "price_per_unit": 4.99,
-      "quantity_in_stock": 40
+      "quantity_in_stock": 40,
+      "category_id": 1
     }
+order: 3470132406910975

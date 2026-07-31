@@ -10,5 +10,18 @@ body:
       "unit": "each",
       "cost_per_unit": 2.25,
       "price_per_unit": 5.99,
-      "quantity_in_stock": 24
+      "quantity_in_stock": 24,
+      "category_id": 2
     }
+tests:
+  - name: 'Status code is 201'
+    script: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+  - name: 'Save product id for follow-up requests'
+    script: |-
+      pm.test("Save product id for follow-up requests", function () {
+        const json = pm.response.json();
+        pm.collectionVariables.set("product_id", String(json.id));
+      });

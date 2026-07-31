@@ -1,5 +1,5 @@
 $kind: http-request
 name: Products Search by id number
-url: http://127.0.0.1:8000/products/4/
+url: http://127.0.0.1:8000/products/{{product_id}}/
 method: GET
 order: 1785181838065

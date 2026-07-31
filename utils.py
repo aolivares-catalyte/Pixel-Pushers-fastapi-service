@@ -1,4 +1,6 @@
-from database import SessionLocal
+"""Utility helpers shared across API modules."""
+
+from database import session_local
 
 
 def get_db():
@@ -8,7 +10,7 @@ def get_db():
     Yields:
         Session: SQLAlchemy database session.
     """
-    db = SessionLocal()
+    db = session_local()
     try:
         yield db
     finally:
