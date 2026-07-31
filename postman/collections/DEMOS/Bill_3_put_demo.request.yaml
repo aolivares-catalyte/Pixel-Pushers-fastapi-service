@@ -1,0 +1,16 @@
+$kind: http-request
+name: Products Put Update Missing
+url: http://127.0.0.1:8000/products/9999
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ghost Product",
+      "unit": "each",
+      "cost_per_unit": 1.00,
+      "price_per_unit": 2.00,
+      "quantity_in_stock": 10,
+      "category_id": 1
+    }
+order: 3470132406912008

@@ -1,0 +1,12 @@
+$kind: http-request
+name: Category Post Herbs
+url: http://127.0.0.1:8000/categories/
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "Herbs",
+      "description": "Edible leafy plants used for cooking"
+    }
+order: 3470132406912001

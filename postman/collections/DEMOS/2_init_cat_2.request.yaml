@@ -1,0 +1,12 @@
+$kind: http-request
+name: Category Post Outdoor Plants
+url: http://127.0.0.1:8000/categories/
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "Outdoor Plants",
+      "description": "Shrubs and flowers for outdoor gardens"
+    }
+order: 3470132406912002

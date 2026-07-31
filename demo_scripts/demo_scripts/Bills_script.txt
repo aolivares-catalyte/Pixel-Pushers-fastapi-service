@@ -1,1 +1,31 @@
 This is Bill's script for the demo!
+
+Team introduction of members
+We are team pixel pushers
+- William Shepelak
+- Allen Oliviares
+- Doendry Kinsey
+
+What does our system do?
+- Our system manages the storage, maintenence, and validity of information
+  pertaining to retail buisness operations for a garden center
+- Our system ensures that product information is maintained with a standard
+  that allows users access to readable and verified data. Our system ensures
+  that anyone wishing to add information or change information does so correctly
+  and in a matter that will not lead to confusion later on.
+- Our system can be implemented into POS systems so that an array of these systems
+  are constantly updated with information that represents the most current state
+  of the stores inventory. It can also be implemented into an online webstore allowing
+  customers to make fofillable purchases without worrying about buying the wrong product
+  or putting in orders for products that are out of stock.
+- AI was used to contribute to ideas and feedback on the development of our system. It allowed
+  us to gain other perspectives in a quick matter which helped emmensly during the testing of
+  our system.
+- Our system works through a protocal of information sharing formally known as REST api. 
+  This protocal performs actions based on a unit of instruction called a request.
+  Simular to how a customer requests to buy a product and a retail worker respondes to their
+  request, REST api's work in a simular fashon.  Our system expects to receive many requests from
+  multiple different systems (for example POS systems). Our system then processes these requests
+  and performs a set of actions depending on what the requests ask our system to do. We then send
+  a response back to the system that sends us a request that either gives them the information
+  they are requesting or confirms that our system has performed the action they have asked us to do.

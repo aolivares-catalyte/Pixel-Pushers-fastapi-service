@@ -1,0 +1,16 @@
+$kind: http-request
+name: Products Put Update Basil Good
+url: http://127.0.0.1:8000/products/1
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "name": "Basil Plant - 4in Pot",
+      "unit": "each",
+      "cost_per_unit": 1.75,
+      "price_per_unit": 4.49,
+      "quantity_in_stock": 50,
+      "category_id": 1
+    }
+order: 3470132406912006
