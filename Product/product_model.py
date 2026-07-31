@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Float, Integer, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Float, Integer, Boolean, ForeignKey
 
 from database import Base
 
@@ -20,3 +20,6 @@ class Product(Base):
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     quantity_in_stock: Mapped[float] = mapped_column(Float, nullable=False, index=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    
+    category_id: Mapped[int] = mapped_column( Integer,ForeignKey("categories.id"),nullable=False)
+    category = relationship("Category", back_populates="products")

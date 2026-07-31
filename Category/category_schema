@@ -1,0 +1,22 @@
+from pydantic import BaseModel, ConfigDict
+
+class CategoryCreate(BaseModel):
+    name: str
+
+class CategoryName(BaseModel):
+    id: int
+    name: str
+    model_config = ConfigDict(from_attributes=True)
+
+class ProductInsideCategory(BaseModel):
+    id: int
+    name: str
+    unit: str
+    price_per_unit: float
+    model_config = ConfigDict(from_attributes=True)
+
+class CategoryRead(BaseModel):
+    id: int
+    name: str
+    products: list[ProductInsideCategory]
+    model_config = ConfigDict(from_attributes=True)

@@ -4,14 +4,14 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from Product.product_model import Product
 from utils import get_db
+from sqlalchemy.exc import IntegrityError
 
 from Product.product_schema import *
 
 # Create a router instance for product related endpoints
-router = APIRouter()
+router = APIRouter(prefix="/products", tags=["Products"])
 
-# In memory list to store products
-products_list = []
+
 
 
 @router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
@@ -34,6 +34,10 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
         db.refresh(new_product)
         return new_product
 
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Category not found")
+
     except Exception as e:
 
         db.rollback()
@@ -41,7 +45,6 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create product in the database.",
         )
-
 
 @router.get("/", response_model=ProductListResponse, status_code=status.HTTP_200_OK)
 async def get_products(db: Session = Depends(get_db)):

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from Category.category_schema import CategoryName
 
 
 class ProductCreate(BaseModel):
@@ -20,6 +21,8 @@ class ProductCreate(BaseModel):
     cost_per_unit: float = Field(..., gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(..., ge=0)
+    category_id: int
+
 
     @field_validator("price_per_unit", mode="before")
     def validate_price_per_unit(cls, value, info):
@@ -104,6 +107,7 @@ class ProductRead(BaseModel):
     cost_per_unit: float = Field(gt=0)
     price_per_unit: float
     quantity_in_stock: float = Field(ge=0)
+    category: CategoryName
 
     @field_validator("price_per_unit")
     def validate_price_not_loss(cls, value, info):
