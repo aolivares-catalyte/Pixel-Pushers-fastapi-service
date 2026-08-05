@@ -1,0 +1,54 @@
+Requirements:
+
+Team introduction of members
+- Good morning My name is Allen, he is Bill, and his is Deondre. Today we want to walk you through what our team has been building over the past week. we've built a robust, custom software for our graden center.
+
+
+Team describes to stakeholders what the team has been working on in the backend module in a way that is simple enough for non-technical clients to understand
+What does the system do?
+-At a high level, the system we built is the digital engine for our garden center's inventory. It is a secure, centralized system that keeps track of our products, our pricing, our stock levels, and how we organize everything into distinct store sections or categories. It also allows us to modifey and delete any of these.
+
+
+
+What value does this system provide?
+
+The value that this system provides is that it acts as a single source of truth. If a cashier at the front desk looks up the price of Japanese Maples, and the inventory manager in the back greenhouse updates the stock count for those same trees, they are both interacting with this exact system.
+How could it be used?
+To give you a real-world example, let's say a shipment of 50 new shovels arrives. The receiving team will use our system to immediately add those 50 shovels to our active inventory. As another example, if the wholesale cost of our fertilizer goes up, management can update the cost in our system, and it will immediately flag if our retail selling price needs to be adjusted to prevent us from losing money.
+
+
+Did we use AI? How? (high-level!)
+I also want to briefly mention our development process. To build this efficiently, we utilized Artificial Intelligence to act as an assistant. We used AI to help write repetitive setup code and to generate realistic test data like plant and tools products. This allowed our human engineering team to focus entirely on the complex business rules and making sure the system works perfectly.
+
+
+Give enough context that stakeholders can understand what a request is and what a response.
+
+Before we show you the software in action, we’ll be using a tool called Postman to demonstrate how the system works behind the scenes. You’ll hear us use the term "API."
+If you aren't familiar with an API, just think of it like dining at a restaurant. When you look at the menu and decide you want a burger, you don't go into the kitchen to cook it yourself. You give your "Request" to the waiter. The waiter takes that request to the kitchen—which is our system's database—where the food is prepared. Finally, the waiter brings the finished burger back to your table. That finished product is the "Response."
+
+Today, you are the customer, Postman is our waiter, and we are going to show you how smoothly our kitchen operates!
+
+
+Then, each member of the team will demonstrate one endpoint with postman
+We want to hear about the business value that this endpoint provides
+We want to see the "happy path" scenario when the response is accepted
+We want to see a "sad path" where there is an error (or no results for a search)
+Why did we expect this response
+What does it mean to the system or developer that is consuming this endpoint (for example, if a 400, they should fix the thing and send it again)
+
+For a garden center to succeed, we have to know exactly what we are selling, how it is measured, and what it costs. When we add a new item, the system double-checks that the information is correct so we don't accidentally make costly mistakes—like pricing an item lower than what we paid for it.  The Happy Path (Adding a Product):Let's add a new shipment of "Organic Potting Soil" to our inventory.[Stage Direction: Alex shares their screen showing Postman. They open the tab for POST /products/.]Alex:
+Here is our request to the waiter. We are providing the name, the unit of measurement—which is "bag"—the cost we paid per unit, the price we want to sell it for, and the quantity we have in stock.  [Stage Direction: Alex clicks "Send" in Postman.]Alex:And there is our successful response! The kitchen has accepted our request, and our potting soil is now officially saved in the system with a unique identification number.The Sad Path (Pricing Error):Now, what happens if someone makes a typo? Let's say a manager accidentally tries to set the selling price of a new shovel to $5.00, but our wholesale cost for the shovel is actually $10.00.[Stage Direction: Alex switches to a new Postman tab for POST /products/, changes the price_per_unit to be lower than the cost_per_unit, and clicks "Send".]
+
+As you can see, the system refused the request. We get an error response specifically telling the user that the selling price must be greater than or equal to the cost. This means a partner app or a frontend screen would show a helpful message to the employee, allowing them to fix the typo before the business accidentally loses money.
+
+
+Don't:
+
+Get too technical. We don't want their eyes glazing over, here! They don't know what schemas and models are or need to know anything about our layered architecture (routers / services / repositories), or intricate code-related details about validation (that it exists, sure!)
+
+
+Constraints:
+
+20 minute max per team
+(edited)
+Message 6-8-26-xchange-python HII
